@@ -1,0 +1,22 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Modules\Triage\Controllers\NursingController;
+use App\Modules\Triage\Controllers\ReceptionController;
+use App\Modules\Triage\Controllers\DoctorController;
+
+Route::prefix('triage')->group(function () {
+
+    // Nursing (Enfermería - Triaje)
+    Route::get('/nursing', [NursingController::class, 'index'])->name('triage.nursing.index');
+    Route::post('/nursing/triage', [NursingController::class, 'store'])->name('triage.nursing.store');
+
+    // Reception (Recepción - Citas)
+    Route::get('/reception', [ReceptionController::class, 'index'])->name('triage.reception.index');
+    Route::post('/reception/appointment', [ReceptionController::class, 'store'])->name('triage.reception.store');
+
+    // Doctor
+    Route::get('/doctor', [DoctorController::class, 'index'])->name('triage.doctor.index');
+    Route::get('/doctor/pdf/{appointment}', [DoctorController::class, 'pdf'])->name('triage.doctor.pdf');
+
+});
