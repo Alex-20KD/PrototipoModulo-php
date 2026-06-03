@@ -14,7 +14,12 @@
         .label { font-weight: bold; font-size: 10px; color: #333; }
         .value { font-size: 11px; min-height: 18px; }
         .footer { text-align: center; font-size: 9px; margin-top: 15px; color: #555; border-top: 1px solid #999; padding-top: 6px; }
-        .empty-row td { height: 60px; }
+        .empty-row td { height: 50px; }
+        .empty-row-sm td { height: 30px; }
+        .checkbox { display: inline-block; width: 10px; height: 10px; border: 1px solid #000; margin-right: 3px; vertical-align: middle; }
+        .checkbox.checked { background: #000; }
+        .signature-line { border-top: 1px solid #000; width: 200px; margin: 30px auto 5px; }
+        .signature-label { text-align: center; font-size: 10px; color: #333; }
     </style>
 </head>
 <body>
@@ -65,10 +70,70 @@
     {{-- 2. ANTECEDENTES PERSONALES --}}
     <table>
         <tr>
-            <td class="section-title">2. ANTECEDENTES PERSONALES</td>
+            <td colspan="4" class="section-title">2. ANTECEDENTES PERSONALES</td>
         </tr>
-        <tr class="empty-row">
+        <tr>
+            <td class="label" style="width:25%;">Clínicos</td>
+            <td style="width:25%;"></td>
+            <td class="label" style="width:25%;">Quirúrgicos</td>
+            <td style="width:25%;"></td>
+        </tr>
+        <tr>
+            <td class="label">Alergias</td>
             <td></td>
+            <td class="label">Medicación Habitual</td>
+            <td></td>
+        </tr>
+        <tr class="empty-row-sm">
+            <td class="label">Observaciones</td>
+            <td colspan="3"></td>
+        </tr>
+    </table>
+
+    {{-- 3. ANTECEDENTES FAMILIARES --}}
+    <table>
+        <tr>
+            <td colspan="4" class="section-title">3. ANTECEDENTES FAMILIARES</td>
+        </tr>
+        <tr>
+            <td class="label" style="width:25%;">Cardiopatías</td>
+            <td style="width:25%;">
+                <span class="checkbox"></span> Sí
+                <span class="checkbox"></span> No
+            </td>
+            <td class="label" style="width:25%;">Diabetes</td>
+            <td style="width:25%;">
+                <span class="checkbox"></span> Sí
+                <span class="checkbox"></span> No
+            </td>
+        </tr>
+        <tr>
+            <td class="label">HTA</td>
+            <td>
+                <span class="checkbox"></span> Sí
+                <span class="checkbox"></span> No
+            </td>
+            <td class="label">Cáncer</td>
+            <td>
+                <span class="checkbox"></span> Sí
+                <span class="checkbox"></span> No
+            </td>
+        </tr>
+        <tr>
+            <td class="label">Tuberculosis</td>
+            <td>
+                <span class="checkbox"></span> Sí
+                <span class="checkbox"></span> No
+            </td>
+            <td class="label">Enf. Mentales</td>
+            <td>
+                <span class="checkbox"></span> Sí
+                <span class="checkbox"></span> No
+            </td>
+        </tr>
+        <tr class="empty-row-sm">
+            <td class="label">Otros</td>
+            <td colspan="3"></td>
         </tr>
     </table>
 
@@ -77,8 +142,44 @@
         <tr>
             <td class="section-title">4. ENFERMEDAD O PROBLEMA ACTUAL</td>
         </tr>
-        <tr class="empty-row">
+        <tr>
+            <td class="value" style="padding:8px;">
+                <span class="label">Cronología y descripción:</span><br><br>
+            </td>
+        </tr>
+        <tr class="empty-row-sm">
             <td></td>
+        </tr>
+    </table>
+
+    {{-- 5. REVISIÓN ACTUAL DE ÓRGANOS Y SISTEMAS --}}
+    <table>
+        <tr>
+            <td colspan="6" class="section-title">5. REVISIÓN ACTUAL DE ÓRGANOS Y SISTEMAS</td>
+        </tr>
+        <tr>
+            <td class="label" style="width:16%;">Órganos de los Sentidos</td>
+            <td style="width:17%;"><span class="checkbox"></span> Sin patología</td>
+            <td class="label" style="width:16%;">Respiratorio</td>
+            <td style="width:17%;"><span class="checkbox"></span> Sin patología</td>
+            <td class="label" style="width:16%;">Cardiovascular</td>
+            <td style="width:18%;"><span class="checkbox"></span> Sin patología</td>
+        </tr>
+        <tr>
+            <td class="label">Digestivo</td>
+            <td><span class="checkbox"></span> Sin patología</td>
+            <td class="label">Genito Urinario</td>
+            <td><span class="checkbox"></span> Sin patología</td>
+            <td class="label">Músculo Esquelético</td>
+            <td><span class="checkbox"></span> Sin patología</td>
+        </tr>
+        <tr>
+            <td class="label">Endocrino</td>
+            <td><span class="checkbox"></span> Sin patología</td>
+            <td class="label">Hemo Linfático</td>
+            <td><span class="checkbox"></span> Sin patología</td>
+            <td class="label">Nervioso</td>
+            <td><span class="checkbox"></span> Sin patología</td>
         </tr>
     </table>
 
@@ -107,6 +208,37 @@
         </tr>
     </table>
 
+    {{-- 7. EXAMEN FÍSICO REGIONAL --}}
+    <table>
+        <tr>
+            <td colspan="2" class="section-title">7. EXAMEN FÍSICO REGIONAL</td>
+        </tr>
+        <tr>
+            <td class="label" style="width:30%;">Cabeza</td>
+            <td class="value"></td>
+        </tr>
+        <tr>
+            <td class="label">Cuello</td>
+            <td class="value"></td>
+        </tr>
+        <tr>
+            <td class="label">Tórax</td>
+            <td class="value"></td>
+        </tr>
+        <tr>
+            <td class="label">Abdomen</td>
+            <td class="value"></td>
+        </tr>
+        <tr>
+            <td class="label">Pelvis</td>
+            <td class="value"></td>
+        </tr>
+        <tr>
+            <td class="label">Extremidades</td>
+            <td class="value"></td>
+        </tr>
+    </table>
+
     {{-- Doctor info --}}
     <table>
         <tr>
@@ -118,6 +250,22 @@
             <td class="value">{{ $appointment->appointment_date->format('d/m/Y H:i') }}</td>
         </tr>
     </table>
+
+    {{-- Firma --}}
+    <div style="margin-top: 30px;">
+        <table>
+            <tr>
+                <td class="no-border" style="width:50%; text-align:center; padding-top:40px;">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">FIRMA DEL PROFESIONAL</div>
+                </td>
+                <td class="no-border" style="width:50%; text-align:center; padding-top:40px;">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">FIRMA DEL PACIENTE / REPRESENTANTE</div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <div class="footer">
         SNS-MSP / HCU-form.002 / 2008 &nbsp;&nbsp; CONSULTA EXTERNA - ANAMNESIS Y EXAMEN FISICO

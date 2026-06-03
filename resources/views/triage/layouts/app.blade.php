@@ -184,6 +184,7 @@
         .icon-circle-amber { background: rgba(245, 158, 11, 0.15); color: var(--accent); }
         .icon-circle-rose { background: rgba(239, 68, 68, 0.15); color: #f87171; }
     </style>
+    @yield('styles')
 </head>
 <body>
     <nav class="navbar navbar-expand-lg">

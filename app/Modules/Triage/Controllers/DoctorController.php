@@ -15,7 +15,7 @@ class DoctorController extends Controller
         $appointments = Appointment::with(['user', 'doctor', 'vitalSigns'])
             ->whereDate('appointment_date', Carbon::today())
             ->orderBy('appointment_date')
-            ->get();
+            ->paginate(10);
 
         return view('triage.doctor.index', compact('appointments'));
     }
