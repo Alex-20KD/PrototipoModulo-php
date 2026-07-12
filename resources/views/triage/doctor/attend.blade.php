@@ -287,11 +287,54 @@
 
             <div class="col-md-4 mb-3">
                 <label for="diagnosis_type" class="form-label">Tipo de Diagnóstico <span class="text-danger">*</span></label>
-                <select class="form-select" id="diagnosis_type" name="diagnosis_type" required>
-                    <option value="" disabled {{ old('diagnosis_type') ? '' : 'selected' }}>Seleccionar...</option>
-                    <option value="presuntivo" {{ old('diagnosis_type') == 'presuntivo' ? 'selected' : '' }}>Presuntivo</option>
-                    <option value="definitivo" {{ old('diagnosis_type') == 'definitivo' ? 'selected' : '' }}>Definitivo</option>
-                </select>
+                <div class="diagnosis-type-grid">
+                    @php
+                        $diagTypes = [
+                            'presuntivo_ingreso' => [
+                                'label' => 'Presuntivo de Ingreso',
+                                'desc'  => 'Sospecha al momento de la admisión',
+                                'icon'  => '🔍',
+                                'color' => 'warning'
+                            ],
+                            'definitivo_ingreso' => [
+                                'label' => 'Definitivo de Ingreso',
+                                'desc'  => 'Confirmado al momento de la admisión',
+                                'icon'  => '✅',
+                                'color' => 'success'
+                            ],
+                            'presuntivo_alta' => [
+                                'label' => 'Presuntivo de Alta',
+                                'desc'  => 'Aún en sospecha al dar el alta',
+                                'icon'  => '⚠️',
+                                'color' => 'warning'
+                            ],
+                            'definitivo_alta' => [
+                                'label' => 'Definitivo de Alta',
+                                'desc'  => 'Confirmado al momento del alta',
+                                'icon'  => '✔️',
+                                'color' => 'success'
+                            ],
+                        ];
+                    @endphp
+
+                    @foreach($diagTypes as $value => $type)
+                    <label class="diagnosis-card {{ old('diagnosis_type') === $value ? 'selected' : '' }}"
+                           for="dt_{{ $value }}">
+                        <input type="radio"
+                               id="dt_{{ $value }}"
+                               name="diagnosis_type"
+                               value="{{ $value }}"
+                               {{ old('diagnosis_type') === $value ? 'checked' : '' }}
+                               style="display:none;">
+                        <span class="diag-icon">{{ $type['icon'] }}</span>
+                        <span class="diag-label">{{ $type['label'] }}</span>
+                        <span class="diag-desc">{{ $type['desc'] }}</span>
+                    </label>
+                    @endforeach
+                </div>
+                @error('diagnosis_type')
+                    <div class="field-error">{{ $message }}</div>
+                @enderror
             </div>
         </div>
     </div>
@@ -564,9 +607,49 @@
         animation: fadeIn 0.25s ease-out;
     }
 
+    .diagnosis-type-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 8px;
+    }
+    .diagnosis-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px 12px;
+        border: 2px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        background: rgba(255,255,255,0.03);
+    }
+    .diagnosis-card:hover {
+        border-color: rgba(13, 148, 136, 0.5);
+        background: rgba(13, 148, 136, 0.08);
+    }
+    .diagnosis-card.selected {
+        border-color: #0d9488;
+        background: rgba(13, 148, 136, 0.15);
+        box-shadow: 0 0 0 1px #0d9488;
+    }
+    .diag-icon { font-size: 1.5rem; margin-bottom: 6px; }
+    .diag-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+    .diag-desc {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
     @media (max-width: 768px) {
         .vitals-grid { grid-template-columns: repeat(2, 1fr); }
         .chronic-grid { grid-template-columns: 1fr; }
+        .diagnosis-type-grid { grid-template-columns: 1fr; }
     }
 </style>
 @endsection
@@ -803,6 +886,18 @@
     bindToggle('ant_dm', 'dm-details');
     bindToggle('ant_dm_treatment', 'dm-medication-wrapper');
     bindToggle('chronic_otra', 'chronic-other-wrapper');
+
+    // ── Diagnosis Cards JS ──
+    document.querySelectorAll('.diagnosis-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.diagnosis-card').forEach(function(c) {
+                c.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            var input = this.querySelector('input[type="radio"]');
+            if(input) input.checked = true;
+        });
+    });
 
 })();
 </script>

@@ -63,7 +63,7 @@ class DoctorController extends Controller
         $validated = $request->validate([
             'anamnesis'       => 'required|string|min:10|no_primera_persona',
             'cie10_code'      => 'required|string|max:10|exists:triage_cie10,code',
-            'diagnosis_type'  => 'required|in:presuntivo,definitivo',
+            'diagnosis_type'  => 'required|in:presuntivo_ingreso,definitivo_ingreso,presuntivo_alta,definitivo_alta',
             // Structured antecedentes
             'ant_hta'              => 'boolean',
             'ant_hta_years'        => 'nullable|integer|min:1|max:100',

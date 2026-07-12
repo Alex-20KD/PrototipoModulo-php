@@ -275,7 +275,9 @@
         <tr>
             <td class="value" style="font-weight:bold;">{{ $appointment->cie10_code }}</td>
             <td class="value">{{ $appointment->cie10_description }}</td>
-            <td class="value" style="text-transform:uppercase;">{{ $appointment->diagnosis_type }}</td>
+            <td class="value" style="text-transform:uppercase;">
+                {{ \App\Modules\Triage\Models\Appointment::DIAGNOSIS_TYPES[$appointment->diagnosis_type] ?? $appointment->diagnosis_type }}
+            </td>
         </tr>
     </table>
     @endif

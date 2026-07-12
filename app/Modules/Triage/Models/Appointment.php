@@ -10,6 +10,13 @@ class Appointment extends Model
 {
     protected $table = 'triage_appointments';
 
+    const DIAGNOSIS_TYPES = [
+        'presuntivo_ingreso' => 'Presuntivo de Ingreso',
+        'definitivo_ingreso' => 'Definitivo de Ingreso',
+        'presuntivo_alta'    => 'Presuntivo de Alta',
+        'definitivo_alta'    => 'Definitivo de Alta',
+    ];
+
     protected $fillable = [
         'user_id',
         'doctor_id',
@@ -58,6 +65,11 @@ class Appointment extends Model
     public function prescriptions(): HasMany
     {
         return $this->hasMany(Prescription::class);
+    }
+
+    public function getDiagnosisTypeLabelAttribute(): string
+    {
+        return self::DIAGNOSIS_TYPES[$this->diagnosis_type] ?? 'No especificado';
     }
 }
 
