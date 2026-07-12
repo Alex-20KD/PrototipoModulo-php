@@ -3,6 +3,7 @@
 namespace App\Modules\Triage\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Routing\Controller;
 use App\Modules\Triage\Models\Appointment;
 use App\Modules\Triage\Models\Cie10;
@@ -31,8 +32,36 @@ class DoctorController extends Controller
 
     public function store(Request $request, Appointment $appointment)
     {
+        // Custom rule: reject first-person phrasing (MSP Ecuador clinical standard)
+        Validator::extend('no_primera_persona', function ($attribute, $value, $parameters, $validator) {
+            $firstPersonPatterns = [
+                '/^\s*(yo\s)/i',
+                '/^\s*tengo\s/i',
+                '/^\s*me\s+(duele|duelen|siento|encuentro|molesta|molestan)\s/i',
+                '/^\s*siento\s/i',
+                '/^\s*sufro\s/i',
+                '/^\s*estoy\s/i',
+                '/\btengo\b/i',
+                '/\bme duele\b/i',
+                '/\bme siento\b/i',
+                '/\bsufro de\b/i',
+                '/\bmi enfermedad\b/i',
+                '/\byo tengo\b/i',
+            ];
+            foreach ($firstPersonPatterns as $pattern) {
+                if (preg_match($pattern, $value)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        Validator::replacer('no_primera_persona', function ($message, $attribute, $rule, $parameters) {
+            return 'El motivo de consulta debe redactarse en tercera persona (ej: "paciente refiere dolor de cabeza") o como síntoma (ej: "cefalea intensa"). No use primera persona (tengo, me duele, siento, etc.).';
+        });
+
         $validated = $request->validate([
-            'anamnesis'       => 'required|string',
+            'anamnesis'       => 'required|string|min:10|no_primera_persona',
             'cie10_code'      => 'required|string|max:10|exists:triage_cie10,code',
             'diagnosis_type'  => 'required|in:presuntivo,definitivo',
             // Structured antecedentes

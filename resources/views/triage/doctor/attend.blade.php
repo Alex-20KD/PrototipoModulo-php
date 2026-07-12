@@ -109,9 +109,23 @@
 
         <div class="mb-0">
             <label for="anamnesis" class="form-label">Anamnesis (Enfermedad Actual) <span class="text-danger">*</span></label>
+            <small style="color: var(--text-secondary); display: block; margin-bottom: 0.4rem;">
+                📝 Redactar en <strong>tercera persona</strong> o como síntoma.
+                Nunca en primera persona (tengo, me duele, siento...).
+            </small>
             <textarea class="form-control" id="anamnesis" name="anamnesis" rows="4"
-                      placeholder="Describa la enfermedad actual, cronología, síntomas..."
+                      placeholder="Paciente refiere... / Describe síntomas en tercera persona o como hallazgo clínico. Ej: 'cefalea intensa de 2 días de evolución'"
                       required>{{ old('anamnesis') }}</textarea>
+            <div id="anamnesis-warning" class="alert-primera-persona" style="display:none;">
+                ⚠️ <strong>Atención:</strong> El motivo de consulta debe escribirse en
+                <strong>tercera persona</strong> o como síntoma.<br>
+                <span style="color:#f87171;">✗ Incorrecto:</span> "tengo dolor de cabeza"<br>
+                <span style="color:#34d399;">✓ Correcto:</span> "paciente refiere dolor de cabeza"
+                o simplemente "cefalea intensa"
+            </div>
+            <small id="anamnesis-counter" style="color: var(--text-secondary); float:right; margin-top: 4px;">
+                0 caracteres (mínimo 10)
+            </small>
         </div>
     </div>
 
@@ -539,6 +553,17 @@
         border-color: var(--primary);
     }
 
+    .alert-primera-persona {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-top: 8px;
+        font-size: 0.875rem;
+        color: #fca5a5;
+        animation: fadeIn 0.25s ease-out;
+    }
+
     @media (max-width: 768px) {
         .vitals-grid { grid-template-columns: repeat(2, 1fr); }
         .chronic-grid { grid-template-columns: 1fr; }
@@ -550,6 +575,52 @@
 <script>
 (function() {
     'use strict';
+
+    // ── Anamnesis First-Person Detection (real-time) ──
+    const firstPersonPatterns = [
+        /\btengo\b/i,
+        /\bme duele\b/i,
+        /\bme duelen\b/i,
+        /\bme siento\b/i,
+        /\bsiento\b/i,
+        /\bsufro\b/i,
+        /\bmi enfermedad\b/i,
+        /\byo tengo\b/i,
+        /^estoy\b/i,
+    ];
+
+    const anamnesisTextarea = document.getElementById('anamnesis');
+    const anamnesisWarning = document.getElementById('anamnesis-warning');
+    const anamnesisCounter = document.getElementById('anamnesis-counter');
+
+    if (anamnesisTextarea) {
+        // Fire on load if old() value is present
+        function checkAnamnesis() {
+            var value = anamnesisTextarea.value;
+            var len = value.length;
+
+            // Update counter
+            anamnesisCounter.textContent = len + ' caracteres (mínimo 10)';
+            anamnesisCounter.style.color = len >= 10 ? '#34d399' : '#f87171';
+
+            // Check first person
+            var hasFirstPerson = firstPersonPatterns.some(function(p) { return p.test(value); });
+            anamnesisWarning.style.display = hasFirstPerson ? 'block' : 'none';
+
+            // Visual feedback on textarea border
+            if (hasFirstPerson) {
+                anamnesisTextarea.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+            } else if (len >= 10) {
+                anamnesisTextarea.style.borderColor = 'rgba(52, 211, 153, 0.6)';
+            } else {
+                anamnesisTextarea.style.borderColor = '';
+            }
+        }
+
+        anamnesisTextarea.addEventListener('input', checkAnamnesis);
+        // Run once on page load (for old() restoration)
+        checkAnamnesis();
+    }
 
     // ── CIE-10 Search with debounce ──
     const searchInput = document.getElementById('cie10-search');
