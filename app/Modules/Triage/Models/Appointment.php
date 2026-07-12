@@ -4,6 +4,7 @@ namespace App\Modules\Triage\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Appointment extends Model
 {
@@ -15,6 +16,11 @@ class Appointment extends Model
         'vital_signs_id',
         'appointment_date',
         'status',
+        'anamnesis',
+        'antecedentes',
+        'cie10_code',
+        'cie10_description',
+        'diagnosis_type',
     ];
 
     protected $casts = [
@@ -36,4 +42,10 @@ class Appointment extends Model
     {
         return $this->belongsTo(VitalSign::class, 'vital_signs_id');
     }
+
+    public function prescriptions(): HasMany
+    {
+        return $this->hasMany(Prescription::class);
+    }
 }
+

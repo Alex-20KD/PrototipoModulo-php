@@ -74,7 +74,7 @@
         </tr>
         <tr>
             <td class="label" style="width:25%;">Clínicos</td>
-            <td style="width:25%;"></td>
+            <td style="width:25%;">{{ $appointment->antecedentes ?? '' }}</td>
             <td class="label" style="width:25%;">Quirúrgicos</td>
             <td style="width:25%;"></td>
         </tr>
@@ -86,7 +86,7 @@
         </tr>
         <tr class="empty-row-sm">
             <td class="label">Observaciones</td>
-            <td colspan="3"></td>
+            <td colspan="3">{{ $appointment->antecedentes ?? '' }}</td>
         </tr>
     </table>
 
@@ -144,7 +144,8 @@
         </tr>
         <tr>
             <td class="value" style="padding:8px;">
-                <span class="label">Cronología y descripción:</span><br><br>
+                <span class="label">Cronología y descripción:</span><br>
+                {{ $appointment->anamnesis ?? '' }}
             </td>
         </tr>
         <tr class="empty-row-sm">
@@ -238,6 +239,50 @@
             <td class="value"></td>
         </tr>
     </table>
+
+    {{-- 8. DIAGNÓSTICO --}}
+    @if($appointment->cie10_code)
+    <table>
+        <tr>
+            <td colspan="3" class="section-title">8. DIAGNÓSTICO</td>
+        </tr>
+        <tr>
+            <td class="label" style="width:20%;">CÓDIGO CIE-10</td>
+            <td class="label" style="width:50%;">DESCRIPCIÓN</td>
+            <td class="label" style="width:30%;">TIPO</td>
+        </tr>
+        <tr>
+            <td class="value" style="font-weight:bold;">{{ $appointment->cie10_code }}</td>
+            <td class="value">{{ $appointment->cie10_description }}</td>
+            <td class="value" style="text-transform:uppercase;">{{ $appointment->diagnosis_type }}</td>
+        </tr>
+    </table>
+    @endif
+
+    {{-- 9. PLAN DE TRATAMIENTO / RECETA --}}
+    @if($appointment->prescriptions && $appointment->prescriptions->count() > 0)
+    <table>
+        <tr>
+            <td colspan="5" class="section-title">9. PLAN DE TRATAMIENTO / RECETA</td>
+        </tr>
+        <tr>
+            <td class="label" style="width:25%;">MEDICAMENTO</td>
+            <td class="label" style="width:15%;">CONCENTRACIÓN</td>
+            <td class="label" style="width:15%;">FORMA FARM.</td>
+            <td class="label" style="width:10%;">CANTIDAD</td>
+            <td class="label" style="width:35%;">INDICACIONES</td>
+        </tr>
+        @foreach($appointment->prescriptions as $rx)
+        <tr>
+            <td class="value">{{ $rx->generic_name }}</td>
+            <td class="value">{{ $rx->concentration }}</td>
+            <td class="value">{{ $rx->form }}</td>
+            <td class="value" style="text-align:center;">{{ $rx->quantity }}</td>
+            <td class="value">{{ $rx->indications }}</td>
+        </tr>
+        @endforeach
+    </table>
+    @endif
 
     {{-- Doctor info --}}
     <table>

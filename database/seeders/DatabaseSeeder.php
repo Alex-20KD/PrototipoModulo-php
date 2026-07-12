@@ -58,5 +58,8 @@ class DatabaseSeeder extends Seeder
             'reason_for_consultation' => 'Dolor de cabeza persistente desde hace 3 días',
             'status' => 'pending',
         ]);
+
+        // CIE-10 catalog
+        $this->call(Cie10Seeder::class);
     }
 }

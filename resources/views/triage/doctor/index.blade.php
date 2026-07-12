@@ -8,6 +8,12 @@
     <p class="section-subtitle">Listado de citas programadas para hoy, {{ now()->format('d/m/Y') }}</p>
 </div>
 
+@if(session('success'))
+    <div class="alert-success-custom mb-4">
+        <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+    </div>
+@endif
+
 @if($appointments->count() === 0)
     <div class="glass-card text-center py-5">
         <i class="bi bi-calendar-x fs-1" style="color:var(--text-secondary);"></i>
@@ -39,11 +45,26 @@
                             <span class="badge-status badge-pending">Sin triaje</span>
                         @endif
                     </td>
-                    <td><span class="badge-status badge-assigned">{{ $appt->status }}</span></td>
+                    <td>
+                        @if($appt->status === 'completed')
+                            <span class="badge-status badge-completed">Completada</span>
+                        @else
+                            <span class="badge-status badge-assigned">{{ $appt->status }}</span>
+                        @endif
+                    </td>
                     <td class="text-end">
-                        <a href="{{ route('triage.doctor.pdf', $appt->id) }}" class="btn btn-outline-glass btn-sm">
-                            <i class="bi bi-file-earmark-pdf me-1"></i> Ver Hoja Clínica (PDF)
-                        </a>
+                        @if($appt->status === 'completed')
+                            <a href="{{ route('triage.doctor.pdf', $appt->id) }}" class="btn btn-outline-glass btn-sm">
+                                <i class="bi bi-file-earmark-pdf me-1"></i> Ver PDF
+                            </a>
+                        @else
+                            <a href="{{ route('triage.doctor.attend', $appt->id) }}" class="btn btn-accent btn-sm">
+                                <i class="bi bi-clipboard2-pulse me-1"></i> Atender Paciente
+                            </a>
+                            <a href="{{ route('triage.doctor.pdf', $appt->id) }}" class="btn btn-outline-glass btn-sm ms-1">
+                                <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+                            </a>
+                        @endif
                     </td>
                 </tr>
                 @endforeach
@@ -85,6 +106,11 @@
         background: rgba(255, 255, 255, 0.02);
         color: rgba(148, 163, 184, 0.4);
         border-color: rgba(255, 255, 255, 0.05);
+    }
+    .badge-completed {
+        background: rgba(59, 130, 246, 0.2);
+        color: #93c5fd;
+        border: 1px solid rgba(59, 130, 246, 0.3);
     }
 </style>
 @endsection
