@@ -21,10 +21,22 @@ class Appointment extends Model
         'cie10_code',
         'cie10_description',
         'diagnosis_type',
+        'ant_hta',
+        'ant_hta_years',
+        'ant_hta_treatment',
+        'ant_hta_medication',
+        'ant_dm',
+        'ant_dm_years',
+        'ant_dm_treatment',
+        'ant_dm_medication',
+        'ant_chronic',
+        'ant_chronic_other',
+        'ant_observations',
     ];
 
     protected $casts = [
         'appointment_date' => 'datetime',
+        'ant_chronic' => 'array',
     ];
 
     // References host system's users table

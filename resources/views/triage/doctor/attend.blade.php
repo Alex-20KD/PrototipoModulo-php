@@ -105,19 +105,148 @@
     @csrf
 
     <div class="glass-card mb-4">
-        <h5 class="card-section-title"><i class="bi bi-journal-medical me-2"></i>Anamnesis y Antecedentes</h5>
+        <h5 class="card-section-title"><i class="bi bi-journal-medical me-2"></i>Anamnesis</h5>
 
-        <div class="mb-3">
+        <div class="mb-0">
             <label for="anamnesis" class="form-label">Anamnesis (Enfermedad Actual) <span class="text-danger">*</span></label>
             <textarea class="form-control" id="anamnesis" name="anamnesis" rows="4"
                       placeholder="Describa la enfermedad actual, cronología, síntomas..."
                       required>{{ old('anamnesis') }}</textarea>
         </div>
+    </div>
 
-        <div class="mb-0">
-            <label for="antecedentes" class="form-label">Antecedentes Personales</label>
-            <textarea class="form-control" id="antecedentes" name="antecedentes" rows="3"
-                      placeholder="Antecedentes clínicos, quirúrgicos, alergias, medicación habitual...">{{ old('antecedentes') }}</textarea>
+    <div class="glass-card mb-4">
+        <h5 class="card-section-title"><i class="bi bi-heart-pulse me-2"></i>2. Antecedentes Personales y Familiares</h5>
+
+        {{-- A) HIPERTENSIÓN --}}
+        <div class="ant-block mb-3">
+            <div class="form-check form-switch ant-switch">
+                <input class="form-check-input" type="checkbox" id="ant_hta" name="ant_hta" value="1"
+                       {{ old('ant_hta') ? 'checked' : '' }}>
+                <label class="form-check-label" for="ant_hta">
+                    <i class="bi bi-droplet-half me-1" style="color:#f87171;"></i>
+                    ¿El paciente padece <strong>Hipertensión Arterial (HTA)</strong>?
+                </label>
+            </div>
+            <div class="ant-subcard" id="hta-details" style="{{ old('ant_hta') ? '' : 'display:none;' }}">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="ant_hta_years" class="form-label">Años de evolución</label>
+                        <input type="number" class="form-control" id="ant_hta_years" name="ant_hta_years"
+                               min="1" max="100" placeholder="Ej: 5"
+                               value="{{ old('ant_hta_years') }}">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-check form-switch ant-switch mt-md-4">
+                            <input class="form-check-input" type="checkbox" id="ant_hta_treatment" name="ant_hta_treatment" value="1"
+                                   {{ old('ant_hta_treatment') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="ant_hta_treatment">¿Está en tratamiento actualmente?</label>
+                        </div>
+                    </div>
+                    <div class="col-12" id="hta-medication-wrapper" style="{{ old('ant_hta_treatment') ? '' : 'display:none;' }}">
+                        <label for="ant_hta_medication" class="form-label">Medicamento que toma</label>
+                        <input type="text" class="form-control" id="ant_hta_medication" name="ant_hta_medication"
+                               placeholder="Ej: Losartán 50mg, Enalapril..."
+                               value="{{ old('ant_hta_medication') }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- B) DIABETES --}}
+        <div class="ant-block mb-3">
+            <div class="form-check form-switch ant-switch">
+                <input class="form-check-input" type="checkbox" id="ant_dm" name="ant_dm" value="1"
+                       {{ old('ant_dm') ? 'checked' : '' }}>
+                <label class="form-check-label" for="ant_dm">
+                    <i class="bi bi-clipboard2-pulse me-1" style="color:#fbbf24;"></i>
+                    ¿El paciente padece <strong>Diabetes Mellitus (DM)</strong>?
+                </label>
+            </div>
+            <div class="ant-subcard" id="dm-details" style="{{ old('ant_dm') ? '' : 'display:none;' }}">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="ant_dm_years" class="form-label">Años de evolución</label>
+                        <input type="number" class="form-control" id="ant_dm_years" name="ant_dm_years"
+                               min="1" max="100" placeholder="Ej: 3"
+                               value="{{ old('ant_dm_years') }}">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-check form-switch ant-switch mt-md-4">
+                            <input class="form-check-input" type="checkbox" id="ant_dm_treatment" name="ant_dm_treatment" value="1"
+                                   {{ old('ant_dm_treatment') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="ant_dm_treatment">¿Está en tratamiento actualmente?</label>
+                        </div>
+                    </div>
+                    <div class="col-12" id="dm-medication-wrapper" style="{{ old('ant_dm_treatment') ? '' : 'display:none;' }}">
+                        <label for="ant_dm_medication" class="form-label">Medicamento que toma</label>
+                        <input type="text" class="form-control" id="ant_dm_medication" name="ant_dm_medication"
+                               placeholder="Ej: Metformina 850mg, Insulina..."
+                               value="{{ old('ant_dm_medication') }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- C) ENFERMEDADES CRÓNICAS --}}
+        <div class="ant-block mb-3">
+            <label class="form-label" style="color: var(--text-primary); font-weight: 600;">
+                <i class="bi bi-bandaid me-1" style="color: var(--primary-light);"></i>
+                Otras enfermedades crónicas relevantes
+            </label>
+            @php $oldChronic = old('ant_chronic', []); @endphp
+            <div class="chronic-grid">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="ant_chronic[]" value="tiroides" id="chronic_tiroides"
+                           {{ in_array('tiroides', $oldChronic) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="chronic_tiroides">Enfermedad tiroidea</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="ant_chronic[]" value="vih" id="chronic_vih"
+                           {{ in_array('vih', $oldChronic) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="chronic_vih">VIH / SIDA</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="ant_chronic[]" value="ets" id="chronic_ets"
+                           {{ in_array('ets', $oldChronic) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="chronic_ets">Enfermedad de transmisión sexual (ETS)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="ant_chronic[]" value="psiquiatrica" id="chronic_psiquiatrica"
+                           {{ in_array('psiquiatrica', $oldChronic) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="chronic_psiquiatrica">Trastorno psiquiátrico</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="ant_chronic[]" value="cancer" id="chronic_cancer"
+                           {{ in_array('cancer', $oldChronic) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="chronic_cancer">Cáncer (oncológico)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="ant_chronic[]" value="cardiopatia" id="chronic_cardiopatia"
+                           {{ in_array('cardiopatia', $oldChronic) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="chronic_cardiopatia">Cardiopatía</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="ant_chronic[]" value="otra" id="chronic_otra"
+                           {{ in_array('otra', $oldChronic) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="chronic_otra">Otra</label>
+                </div>
+            </div>
+            <div id="chronic-other-wrapper" class="mt-2" style="{{ in_array('otra', $oldChronic) ? '' : 'display:none;' }}">
+                <input type="text" class="form-control" name="ant_chronic_other" id="ant_chronic_other"
+                       placeholder="Especifique la enfermedad"
+                       value="{{ old('ant_chronic_other') }}">
+            </div>
+        </div>
+
+        {{-- D) OBSERVACIONES --}}
+        <div class="ant-block">
+            <label for="ant_observations" class="form-label" style="color: var(--text-primary); font-weight: 600;">
+                <i class="bi bi-pencil-square me-1" style="color: var(--primary-light);"></i>
+                Observaciones adicionales de antecedentes
+            </label>
+            <textarea class="form-control" id="ant_observations" name="ant_observations" rows="3"
+                      placeholder="Antecedentes quirúrgicos, alergias, antecedentes familiares relevantes...">{{ old('ant_observations') }}</textarea>
         </div>
     </div>
 
@@ -359,8 +488,60 @@
         border-color: rgba(239, 68, 68, 0.4);
     }
 
+    /* Antecedentes structured blocks */
+    .ant-block {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 1rem;
+    }
+    .ant-switch .form-check-input {
+        width: 2.5em;
+        height: 1.25em;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.15);
+        cursor: pointer;
+    }
+    .ant-switch .form-check-input:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+    .ant-switch .form-check-label {
+        color: var(--text-primary);
+        font-size: 0.92rem;
+        cursor: pointer;
+    }
+    .ant-subcard {
+        margin-top: 0.75rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+        animation: fadeIn 0.25s ease-out;
+    }
+    .chronic-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem 1rem;
+        margin-top: 0.5rem;
+    }
+    .chronic-grid .form-check-label {
+        color: var(--text-primary);
+        font-size: 0.88rem;
+    }
+    .chronic-grid .form-check-input {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.15);
+        cursor: pointer;
+    }
+    .chronic-grid .form-check-input:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
     @media (max-width: 768px) {
         .vitals-grid { grid-template-columns: repeat(2, 1fr); }
+        .chronic-grid { grid-template-columns: 1fr; }
     }
 </style>
 @endsection
@@ -535,6 +716,22 @@
             selectedDiv.style.display = 'inline-flex';
         })();
     @endif
+
+    // ── Antecedentes Toggle Handlers ──
+    function bindToggle(checkboxId, targetId) {
+        var cb = document.getElementById(checkboxId);
+        var target = document.getElementById(targetId);
+        if (!cb || !target) return;
+        cb.addEventListener('change', function() {
+            target.style.display = this.checked ? '' : 'none';
+        });
+    }
+
+    bindToggle('ant_hta', 'hta-details');
+    bindToggle('ant_hta_treatment', 'hta-medication-wrapper');
+    bindToggle('ant_dm', 'dm-details');
+    bindToggle('ant_dm_treatment', 'dm-medication-wrapper');
+    bindToggle('chronic_otra', 'chronic-other-wrapper');
 
 })();
 </script>

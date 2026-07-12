@@ -73,20 +73,41 @@
             <td colspan="4" class="section-title">2. ANTECEDENTES PERSONALES</td>
         </tr>
         <tr>
-            <td class="label" style="width:25%;">Clínicos</td>
-            <td style="width:25%;">{{ $appointment->antecedentes ?? '' }}</td>
-            <td class="label" style="width:25%;">Quirúrgicos</td>
-            <td style="width:25%;"></td>
+            <td class="label" style="width:25%;">HTA</td>
+            <td style="width:25%;">
+                @if($appointment->ant_hta)
+                    <span class="checkbox checked"></span> Sí — {{ $appointment->ant_hta_years ?? '?' }} año(s)<br>
+                    Tratamiento: {{ $appointment->ant_hta_treatment ? 'Sí — '.($appointment->ant_hta_medication ?? 'N/E') : 'No' }}
+                @else
+                    <span class="checkbox checked"></span> Niega
+                @endif
+            </td>
+            <td class="label" style="width:25%;">Diabetes</td>
+            <td style="width:25%;">
+                @if($appointment->ant_dm)
+                    <span class="checkbox checked"></span> Sí — {{ $appointment->ant_dm_years ?? '?' }} año(s)<br>
+                    Tratamiento: {{ $appointment->ant_dm_treatment ? 'Sí — '.($appointment->ant_dm_medication ?? 'N/E') : 'No' }}
+                @else
+                    <span class="checkbox checked"></span> Niega
+                @endif
+            </td>
         </tr>
         <tr>
-            <td class="label">Alergias</td>
-            <td></td>
-            <td class="label">Medicación Habitual</td>
-            <td></td>
+            <td class="label">Enf. Crónicas</td>
+            <td colspan="3">
+                @if(!empty($appointment->ant_chronic))
+                    {{ implode(', ', array_map('ucfirst', $appointment->ant_chronic)) }}
+                    @if($appointment->ant_chronic_other)
+                        — Otra: {{ $appointment->ant_chronic_other }}
+                    @endif
+                @else
+                    Niega
+                @endif
+            </td>
         </tr>
         <tr class="empty-row-sm">
             <td class="label">Observaciones</td>
-            <td colspan="3">{{ $appointment->antecedentes ?? '' }}</td>
+            <td colspan="3">{{ $appointment->ant_observations ?? '' }}</td>
         </tr>
     </table>
 

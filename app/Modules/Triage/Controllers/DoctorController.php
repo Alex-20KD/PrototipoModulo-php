@@ -33,9 +33,22 @@ class DoctorController extends Controller
     {
         $validated = $request->validate([
             'anamnesis'       => 'required|string',
-            'antecedentes'    => 'nullable|string',
             'cie10_code'      => 'required|string|max:10|exists:triage_cie10,code',
             'diagnosis_type'  => 'required|in:presuntivo,definitivo',
+            // Structured antecedentes
+            'ant_hta'              => 'boolean',
+            'ant_hta_years'        => 'nullable|integer|min:1|max:100',
+            'ant_hta_treatment'    => 'boolean',
+            'ant_hta_medication'   => 'nullable|string|max:200',
+            'ant_dm'               => 'boolean',
+            'ant_dm_years'         => 'nullable|integer|min:1|max:100',
+            'ant_dm_treatment'     => 'boolean',
+            'ant_dm_medication'    => 'nullable|string|max:200',
+            'ant_chronic'          => 'nullable|array',
+            'ant_chronic.*'        => 'in:tiroides,vih,ets,psiquiatrica,cancer,cardiopatia,otra',
+            'ant_chronic_other'    => 'nullable|string|max:300',
+            'ant_observations'     => 'nullable|string',
+            // Prescriptions
             'prescriptions'                => 'nullable|array',
             'prescriptions.*.generic_name' => 'required_with:prescriptions|string',
             'prescriptions.*.concentration'=> 'required_with:prescriptions|string',
@@ -47,13 +60,30 @@ class DoctorController extends Controller
         // Always re-fetch the description from the catalog — never trust client-side data
         $cie10 = Cie10::where('code', $validated['cie10_code'])->firstOrFail();
 
+        $htaActive = $request->boolean('ant_hta');
+        $dmActive  = $request->boolean('ant_dm');
+        $chronicList = $validated['ant_chronic'] ?? [];
+
         $appointment->update([
-            'anamnesis'        => $validated['anamnesis'],
-            'antecedentes'     => $validated['antecedentes'] ?? null,
-            'cie10_code'       => $cie10->code,
-            'cie10_description'=> $cie10->description,
-            'diagnosis_type'   => $validated['diagnosis_type'],
-            'status'           => 'completed',
+            'anamnesis'         => $validated['anamnesis'],
+            'cie10_code'        => $cie10->code,
+            'cie10_description' => $cie10->description,
+            'diagnosis_type'    => $validated['diagnosis_type'],
+            'status'            => 'completed',
+            // HTA — clear sub-fields when unchecked
+            'ant_hta'           => $htaActive,
+            'ant_hta_years'     => $htaActive ? $validated['ant_hta_years'] : null,
+            'ant_hta_treatment' => $htaActive ? $request->boolean('ant_hta_treatment') : false,
+            'ant_hta_medication'=> $htaActive && $request->boolean('ant_hta_treatment') ? $validated['ant_hta_medication'] : null,
+            // DM — same conditional logic
+            'ant_dm'            => $dmActive,
+            'ant_dm_years'      => $dmActive ? $validated['ant_dm_years'] : null,
+            'ant_dm_treatment'  => $dmActive ? $request->boolean('ant_dm_treatment') : false,
+            'ant_dm_medication' => $dmActive && $request->boolean('ant_dm_treatment') ? $validated['ant_dm_medication'] : null,
+            // Chronic diseases
+            'ant_chronic'       => $chronicList,
+            'ant_chronic_other' => in_array('otra', $chronicList) ? $validated['ant_chronic_other'] : null,
+            'ant_observations'  => $validated['ant_observations'] ?? null,
         ]);
 
         // Create prescriptions if provided
