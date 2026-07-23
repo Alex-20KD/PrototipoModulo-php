@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Modules\Triage\Controllers\NursingController;
 use App\Modules\Triage\Controllers\ReceptionController;
 use App\Modules\Triage\Controllers\DoctorController;
+use App\Modules\Triage\Controllers\ReportsController;
 
 Route::prefix('triage')->group(function () {
 
@@ -21,5 +22,8 @@ Route::prefix('triage')->group(function () {
     Route::get('/doctor/cie10', [DoctorController::class, 'searchCie10'])->name('triage.doctor.cie10');
     Route::get('/doctor/attend/{appointment}', [DoctorController::class, 'attend'])->name('triage.doctor.attend');
     Route::post('/doctor/attend/{appointment}', [DoctorController::class, 'store'])->name('triage.doctor.attend.store');
+
+    // Reports
+    Route::get('/reports', [ReportsController::class, 'index'])->name('triage.reports.index');
 
 });

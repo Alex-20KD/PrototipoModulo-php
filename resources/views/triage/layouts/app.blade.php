@@ -213,6 +213,11 @@
                             <i class="bi bi-clipboard2-pulse"></i> Doctor
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('triage.reports.*') ? 'active' : '' }}" href="{{ route('triage.reports.index') }}">
+                            <i class="bi bi-bar-chart-line"></i> Reportes
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
