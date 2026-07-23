@@ -1,58 +1,132 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🏥 MedTriaje
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <strong>Módulo de triaje, agendamiento y atención médica</strong><br>
+  Desarrollado en PHP con Laravel para su próxima integración en un sistema clínico institucional.
 </p>
 
-## About Laravel
+<p align="center">
+  <img src="https://img.shields.io/badge/Estado-En%20desarrollo-14b8a6?style=for-the-badge" alt="Estado: En desarrollo">
+  <img src="https://img.shields.io/badge/PHP-Laravel-ff2d20?style=for-the-badge&logo=laravel&logoColor=white" alt="PHP Laravel">
+  <img src="https://img.shields.io/badge/Interfaz-Bootstrap%205-7952b3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap 5">
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 📌 Descripción del proyecto
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**MedTriaje** es un módulo independiente desarrollado como parte de las prácticas laborales. Su propósito es apoyar el flujo de atención médica desde la toma de signos vitales hasta la consulta, la receta y el seguimiento clínico del paciente.
 
-## Learning Laravel
+El módulo está construido para integrarse próximamente a un sistema clínico existente. Por ello, mantiene una arquitectura aislada, con rutas, controladores, modelos y tablas propias bajo el prefijo `triage_`, evitando interferir con las funciones del sistema anfitrión.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+> La autenticación y la gestión de usuarios serán administradas por el sistema principal al momento de la integración.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🎯 Objetivo
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+Digitalizar y organizar el proceso básico de atención ambulatoria, facilitando el registro clínico, el agendamiento de citas y la consulta médica con información estructurada.
 
-## Agentic Development
+## 🔄 Flujo del módulo
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```text
+Enfermería ──► Triaje y signos vitales
+                     │
+                     ▼
+Recepción ───► Agendamiento de cita y vinculación del triaje
+                     │
+                     ▼
+Médico ──────► Consulta, diagnósticos, receta e historial clínico
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## ✨ Funcionalidades implementadas
 
-## Contributing
+### 🩺 Triaje y agendamiento
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Registro de signos vitales con validaciones de rangos fisiológicos.
+- Gestión de triajes pendientes y vinculación automática a la cita.
+- Agenda médica con filtro de citas por fecha.
+- Panel diferenciado para Enfermería, Recepción y Médico.
 
-## Code of Conduct
+### 📋 Atención médica y Formulario 002
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- Registro de anamnesis con validación de redacción clínica.
+- Antecedentes personales estructurados: HTA, diabetes y enfermedades crónicas.
+- Examen físico regional por sistemas.
+- Generación del **Formulario 002 del MSP** en PDF.
+- Receta médica con medicamentos por denominación genérica.
 
-## Security Vulnerabilities
+### 🔎 Diagnóstico y tratamiento
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- Buscador AJAX de códigos CIE-10.
+- Registro de diagnósticos principal y asociados por cita.
+- Tipos de diagnóstico: presuntivo/definitivo, de ingreso/alta.
+- Catálogo de medicamentos basado en el Cuadro Nacional de Medicamentos Básicos del MSP.
+- Identificación visual de medicamentos controlados.
 
-## License
+### 📊 Seguimiento y reportes
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Historial clínico por paciente con línea de tiempo de atenciones.
+- Consulta de signos vitales, diagnósticos, recetas y anamnesis anteriores.
+- Reportes de pacientes atendidos, consultas completadas, recetas emitidas y triajes pendientes.
+- Diagnósticos CIE-10 más frecuentes.
+
+## 🧱 Arquitectura del módulo
+
+```text
+app/Modules/Triage/
+├── Controllers/     # Enfermería, Recepción, Médico y Reportes
+├── Models/          # Entidades clínicas del módulo
+└── routes/          # Rutas bajo /triage/*
+
+resources/views/triage/
+├── nursing/         # Pantalla de triaje
+├── reception/       # Agendamiento de citas
+├── doctor/          # Panel y consulta médica
+├── patients/        # Historial clínico
+├── reports/         # Reportes operativos
+└── pdf/             # Formulario 002
+```
+
+## 🛠️ Tecnologías utilizadas
+
+| Tecnología | Uso en el proyecto |
+|---|---|
+| PHP + Laravel | Lógica del módulo, rutas, controladores y modelos |
+| SQLite | Base de datos del prototipo |
+| MySQL | Base de datos prevista para producción e integración |
+| Bootstrap 5 | Interfaz responsiva con estilo glassmorphism dark |
+| DomPDF | Generación de documentos clínicos en PDF |
+| JavaScript + AJAX | Búsqueda dinámica de CIE-10 y medicamentos |
+
+## 🚀 Ejecución local
+
+```bash
+composer install
+php artisan migrate
+php artisan db:seed
+php artisan serve
+```
+
+Luego, el módulo estará disponible desde:
+
+```text
+http://localhost:8000/triage/nursing
+```
+
+## 🗺️ Estado actual y próximos pasos
+
+El módulo cuenta con un flujo funcional de triaje, agendamiento, atención médica, recetas, reportes e historial clínico. Su siguiente etapa es la **integración con el sistema clínico institucional**, incluyendo la conexión con usuarios, permisos y base de datos del sistema principal.
+
+Mejoras previstas:
+
+- Middleware de roles y permisos.
+- Integración remota en ambiente de pruebas.
+- Interconsulta y referencia médica.
+- Firma digital o escaneada del profesional.
+- Ampliación y actualización del catálogo clínico.
+
+---
+
+<p align="center">
+  <strong>MedTriaje</strong> · Módulo clínico en desarrollo para prácticas laborales<br>
+  <sub>Proyecto preparado para integración progresiva con un sistema de salud existente.</sub>
+</p>
