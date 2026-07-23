@@ -544,6 +544,22 @@
         background: rgba(239, 68, 68, 0.25);
         border-color: rgba(239, 68, 68, 0.4);
     }
+    .medication-search-wrap { position: relative; }
+    .medication-dropdown {
+        position: absolute;
+        top: 100%; left: 0; right: 0; z-index: 1060;
+        display: none; max-height: 260px; overflow-y: auto;
+        background: rgba(30, 41, 59, 0.98); backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border); border-radius: 0 0 10px 10px;
+    }
+    .medication-dropdown.show { display: block; }
+    .medication-option { padding: 0.65rem 0.85rem; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .medication-option:hover { background: rgba(20, 184, 166, 0.12); }
+    .medication-option:last-child { border-bottom: none; }
+    .medication-option strong { color: var(--primary-light); font-size: 0.9rem; }
+    .medication-option small { color: var(--text-secondary); display: block; }
+    .medication-controlled-badge { display: none; margin-top: 0.45rem; color: #fca5a5; font-size: 0.78rem; font-weight: 600; }
+    .btn-change-medication { display: none; border: 0; background: transparent; color: var(--primary-light); font-size: 0.78rem; padding: 0.25rem 0; }
 
     /* Antecedentes structured blocks */
     .ant-block {
@@ -789,7 +805,7 @@
         addPrescriptionRow();
     });
 
-    function addPrescriptionRow() {
+    function addPrescriptionRow(values) {
         noRxMsg.style.display = 'none';
         var idx = rxIndex++;
 
@@ -805,16 +821,24 @@
             '</div>' +
             '<div class="row g-2">' +
                 '<div class="col-md-4 mb-2">' +
-                    '<label class="form-label">Nombre Genérico *</label>' +
-                    '<input type="text" class="form-control" name="prescriptions[' + idx + '][generic_name]" required placeholder="Ej: Paracetamol">' +
+                    '<label class="form-label">Medicamento MSP *</label>' +
+                    '<div class="medication-search-wrap">' +
+                        '<input type="text" class="form-control med-search" id="med-search-' + idx + '" placeholder="Buscar medicamento MSP..." autocomplete="off" required>' +
+                        '<div id="med-results-' + idx + '" class="medication-dropdown"></div>' +
+                    '</div>' +
+                    '<input type="hidden" class="med-generic" name="prescriptions[' + idx + '][generic_name]" required>' +
+                    '<input type="hidden" class="med-concentration" name="prescriptions[' + idx + '][concentration]" required>' +
+                    '<input type="hidden" class="med-form" name="prescriptions[' + idx + '][form]" required>' +
+                    '<div class="medication-controlled-badge">⚠️ Medicamento Controlado</div>' +
+                    '<button type="button" class="btn-change-medication">Cambiar medicamento</button>' +
                 '</div>' +
                 '<div class="col-md-3 mb-2">' +
                     '<label class="form-label">Concentración *</label>' +
-                    '<input type="text" class="form-control" name="prescriptions[' + idx + '][concentration]" required placeholder="Ej: 500mg">' +
+                    '<input type="text" class="form-control med-concentration-display" readonly placeholder="Se completa al seleccionar">' +
                 '</div>' +
                 '<div class="col-md-3 mb-2">' +
                     '<label class="form-label">Forma Farm. *</label>' +
-                    '<input type="text" class="form-control" name="prescriptions[' + idx + '][form]" required placeholder="Ej: Tableta">' +
+                    '<input type="text" class="form-control med-form-display" readonly placeholder="Se completa al seleccionar">' +
                 '</div>' +
                 '<div class="col-md-2 mb-2">' +
                     '<label class="form-label">Cantidad *</label>' +
@@ -827,6 +851,100 @@
             '</div>';
 
         container.appendChild(row);
+        bindMedicationSearch(row, idx);
+
+        if (values) {
+            setMedication(row, {
+                generic_name: values.generic_name || '',
+                concentration: values.concentration || '',
+                form: values.form || '',
+                controlled: false
+            });
+            row.querySelector('[name="prescriptions[' + idx + '][quantity]"]').value = values.quantity || '';
+            row.querySelector('[name="prescriptions[' + idx + '][indications]"]').value = values.indications || '';
+        }
+    }
+
+    function bindMedicationSearch(row, idx) {
+        var search = row.querySelector('.med-search');
+        var results = row.querySelector('#med-results-' + idx);
+        var changeButton = row.querySelector('.btn-change-medication');
+        var timer;
+
+        search.addEventListener('input', function() {
+            clearTimeout(timer);
+            var query = this.value.trim();
+            if (query.length < 2) {
+                results.classList.remove('show');
+                results.innerHTML = '';
+                return;
+            }
+            timer = setTimeout(function() {
+                fetch('/triage/doctor/medications?q=' + encodeURIComponent(query))
+                    .then(function(response) { return response.json(); })
+                    .then(function(medications) {
+                        results.innerHTML = '';
+                        if (!medications.length) {
+                            results.innerHTML = '<div class="cie10-no-results">No se encontraron medicamentos MSP</div>';
+                        } else {
+                            medications.forEach(function(medication) {
+                                var option = document.createElement('div');
+                                option.className = 'medication-option';
+                                var name = document.createElement('strong');
+                                name.textContent = medication.generic_name + ' ' + medication.concentration;
+                                var details = document.createElement('small');
+                                details.textContent = medication.form + (medication.route ? ' · ' + medication.route : '') + (medication.controlled ? ' · CONTROLADO' : '');
+                                option.appendChild(name);
+                                option.appendChild(details);
+                                option.addEventListener('click', function() {
+                                    setMedication(row, medication);
+                                    results.classList.remove('show');
+                                    results.innerHTML = '';
+                                });
+                                results.appendChild(option);
+                            });
+                        }
+                        results.classList.add('show');
+                    })
+                    .catch(function() {
+                        results.innerHTML = '<div class="cie10-no-results">Error al buscar medicamentos</div>';
+                        results.classList.add('show');
+                    });
+            }, 250);
+        });
+
+        changeButton.addEventListener('click', function() {
+            clearMedication(row);
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!row.contains(event.target)) results.classList.remove('show');
+        });
+    }
+
+    function setMedication(row, medication) {
+        row.querySelector('.med-search').value = medication.generic_name + ' ' + medication.concentration + ' — ' + medication.form;
+        row.querySelector('.med-search').setAttribute('readonly', true);
+        row.querySelector('.med-generic').value = medication.generic_name;
+        row.querySelector('.med-concentration').value = medication.concentration;
+        row.querySelector('.med-form').value = medication.form;
+        row.querySelector('.med-concentration-display').value = medication.concentration;
+        row.querySelector('.med-form-display').value = medication.form;
+        row.querySelector('.medication-controlled-badge').style.display = medication.controlled ? 'block' : 'none';
+        row.querySelector('.btn-change-medication').style.display = 'inline-block';
+    }
+
+    function clearMedication(row) {
+        row.querySelector('.med-search').value = '';
+        row.querySelector('.med-search').removeAttribute('readonly');
+        row.querySelector('.med-generic').value = '';
+        row.querySelector('.med-concentration').value = '';
+        row.querySelector('.med-form').value = '';
+        row.querySelector('.med-concentration-display').value = '';
+        row.querySelector('.med-form-display').value = '';
+        row.querySelector('.medication-controlled-badge').style.display = 'none';
+        row.querySelector('.btn-change-medication').style.display = 'none';
+        row.querySelector('.med-search').focus();
     }
 
     window.removePrescription = function(idx) {
@@ -846,15 +964,8 @@
     @if(old('prescriptions'))
         @foreach(old('prescriptions') as $i => $rx)
             (function() {
-                addPrescriptionRow();
-                var lastRow = container.lastElementChild;
-                var inputs = lastRow.querySelectorAll('input, textarea');
                 var values = {!! json_encode($rx) !!};
-                inputs[0].value = values.generic_name || '';
-                inputs[1].value = values.concentration || '';
-                inputs[2].value = values.form || '';
-                inputs[3].value = values.quantity || '';
-                inputs[4].value = values.indications || '';
+                addPrescriptionRow(values);
             })();
         @endforeach
     @endif

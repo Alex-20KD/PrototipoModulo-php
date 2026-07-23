@@ -61,5 +61,8 @@ class DatabaseSeeder extends Seeder
 
         // CIE-10 catalog
         $this->call(Cie10Seeder::class);
+
+        // CNMB medication catalog
+        $this->call(MedicationSeeder::class);
     }
 }

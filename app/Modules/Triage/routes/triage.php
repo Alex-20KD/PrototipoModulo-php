@@ -20,6 +20,7 @@ Route::prefix('triage')->group(function () {
     Route::get('/doctor', [DoctorController::class, 'index'])->name('triage.doctor.index');
     Route::get('/doctor/pdf/{appointment}', [DoctorController::class, 'pdf'])->name('triage.doctor.pdf');
     Route::get('/doctor/cie10', [DoctorController::class, 'searchCie10'])->name('triage.doctor.cie10');
+    Route::get('/doctor/medications', [DoctorController::class, 'searchMedications'])->name('triage.doctor.medications');
     Route::get('/doctor/attend/{appointment}', [DoctorController::class, 'attend'])->name('triage.doctor.attend');
     Route::post('/doctor/attend/{appointment}', [DoctorController::class, 'store'])->name('triage.doctor.attend.store');
     Route::get('/patients/{user_id}/history', [DoctorController::class, 'history'])->name('triage.patient.history');

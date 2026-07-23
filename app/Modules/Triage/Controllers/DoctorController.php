@@ -164,6 +164,34 @@ class DoctorController extends Controller
         return response()->json($results);
     }
 
+    public function searchMedications(Request $request)
+    {
+        $validated = $request->validate([
+            'q' => 'required|string|min:2',
+        ]);
+
+        $query = $validated['q'];
+
+        $medications = \Illuminate\Support\Facades\DB::table('triage_medications')
+            ->where('generic_name', 'LIKE', "%{$query}%")
+            ->orWhere('concentration', 'LIKE', "%{$query}%")
+            ->orWhere('form', 'LIKE', "%{$query}%")
+            ->orderBy('generic_name')
+            ->limit(10)
+            ->get(['id', 'generic_name', 'concentration', 'form', 'route', 'controlled'])
+            ->map(fn ($medication) => [
+                'id' => $medication->id,
+                'generic_name' => $medication->generic_name,
+                'concentration' => $medication->concentration,
+                'form' => $medication->form,
+                'route' => $medication->route,
+                'controlled' => (bool) $medication->controlled,
+                'controlled_warning' => (bool) $medication->controlled,
+            ]);
+
+        return response()->json($medications);
+    }
+
     public function pdf(Appointment $appointment)
     {
         $appointment->load(['user', 'doctor', 'vitalSigns', 'prescriptions']);
