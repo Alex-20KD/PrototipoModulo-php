@@ -4,8 +4,8 @@
 
 @section('content')
 <div class="mb-4">
-    <h1 class="section-title"><i class="bi bi-clipboard2-pulse"></i> Doctor — Citas del Día</h1>
-    <p class="section-subtitle">Listado de citas programadas para hoy, {{ now()->format('d/m/Y') }}</p>
+    <h1 class="section-title">🩺 Citas del día — {{ \Carbon\Carbon::parse($fecha)->format('d/m/Y') }}</h1>
+    <p class="section-subtitle">Listado de citas programadas para la fecha seleccionada.</p>
 </div>
 
 @if(session('success'))
@@ -14,10 +14,21 @@
     </div>
 @endif
 
+<form method="GET" action="{{ route('triage.doctor.index') }}" class="glass-card date-filter-bar mb-4">
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3">
+        <label for="fecha" class="mb-0 fw-semibold">Filtrar por fecha</label>
+        <input id="fecha" type="date" name="fecha" value="{{ $fecha }}" max="{{ date('Y-m-d') }}" class="form-control date-filter-input">
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary-custom"><i class="bi bi-funnel me-1"></i> Filtrar</button>
+            <a href="{{ route('triage.doctor.index') }}" class="btn btn-outline-glass">Hoy</a>
+        </div>
+    </div>
+</form>
+
 @if($appointments->count() === 0)
     <div class="glass-card text-center py-5">
         <i class="bi bi-calendar-x fs-1" style="color:var(--text-secondary);"></i>
-        <p class="mt-3" style="color:var(--text-secondary);">No hay citas programadas para hoy.</p>
+        <p class="mt-3" style="color:var(--text-secondary);">No hay citas programadas para la fecha seleccionada.</p>
     </div>
 @else
     <div class="glass-card" style="padding:0; overflow:hidden;">
@@ -84,6 +95,8 @@
 
 @section('styles')
 <style>
+    .date-filter-bar { padding: 1rem 1.25rem; }
+    .date-filter-input { max-width: 220px; }
     .pagination .page-link {
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.08);

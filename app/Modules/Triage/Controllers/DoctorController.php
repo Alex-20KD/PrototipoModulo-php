@@ -13,14 +13,17 @@ use Carbon\Carbon;
 
 class DoctorController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $appointments = Appointment::with(['user', 'doctor', 'vitalSigns'])
-            ->whereDate('appointment_date', Carbon::today())
-            ->orderBy('appointment_date')
-            ->paginate(10);
+        $fecha = $request->input('fecha', Carbon::today()->toDateString());
 
-        return view('triage.doctor.index', compact('appointments'));
+        $appointments = Appointment::with(['user', 'doctor', 'vitalSigns'])
+            ->whereDate('appointment_date', $fecha)
+            ->orderBy('appointment_date')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('triage.doctor.index', compact('fecha', 'appointments'));
     }
 
     public function attend(Appointment $appointment)
