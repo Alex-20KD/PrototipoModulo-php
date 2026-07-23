@@ -64,6 +64,9 @@
                         @endif
                     </td>
                     <td class="text-end">
+                        <a href="{{ route('triage.patient.history', $appt->user_id) }}" class="btn btn-outline-glass btn-sm mb-1">
+                            <i class="bi bi-clock-history me-1"></i> Ver Historial
+                        </a>
                         @if($appt->status === 'completed')
                             <a href="{{ route('triage.doctor.pdf', $appt->id) }}" class="btn btn-outline-glass btn-sm">
                                 <i class="bi bi-file-earmark-pdf me-1"></i> Ver PDF

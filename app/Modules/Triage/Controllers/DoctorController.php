@@ -26,6 +26,18 @@ class DoctorController extends Controller
         return view('triage.doctor.index', compact('fecha', 'appointments'));
     }
 
+    public function history($user_id)
+    {
+        $patient = \App\Models\User::findOrFail($user_id);
+
+        $appointments = Appointment::with(['doctor', 'vitalSigns', 'prescriptions'])
+            ->where('user_id', $user_id)
+            ->orderBy('appointment_date', 'desc')
+            ->get();
+
+        return view('triage.patients.history', compact('patient', 'appointments'));
+    }
+
     public function attend(Appointment $appointment)
     {
         $appointment->load(['user', 'doctor', 'vitalSigns']);
