@@ -24,6 +24,7 @@ class Appointment extends Model
         'appointment_date',
         'status',
         'anamnesis',
+        'physical_exam',
         'antecedentes',
         'cie10_code',
         'cie10_description',
@@ -67,9 +68,13 @@ class Appointment extends Model
         return $this->hasMany(Prescription::class);
     }
 
+    public function diagnoses(): HasMany
+    {
+        return $this->hasMany(AppointmentDiagnosis::class);
+    }
+
     public function getDiagnosisTypeLabelAttribute(): string
     {
         return self::DIAGNOSIS_TYPES[$this->diagnosis_type] ?? 'No especificado';
     }
 }
-

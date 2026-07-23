@@ -174,6 +174,18 @@
         </tr>
     </table>
 
+    {{-- 3. EXAMEN FÍSICO REGIONAL --}}
+    <table>
+        <tr>
+            <td class="section-title">3. EXAMEN FÍSICO REGIONAL</td>
+        </tr>
+        <tr>
+            <td class="value" style="min-height:50px; padding:8px;">
+                {{ $appointment->physical_exam ?? 'No registrado' }}
+            </td>
+        </tr>
+    </table>
+
     {{-- 5. REVISIÓN ACTUAL DE ÓRGANOS Y SISTEMAS --}}
     <table>
         <tr>
@@ -230,39 +242,7 @@
         </tr>
     </table>
 
-    {{-- 7. EXAMEN FÍSICO REGIONAL --}}
-    <table>
-        <tr>
-            <td colspan="2" class="section-title">7. EXAMEN FÍSICO REGIONAL</td>
-        </tr>
-        <tr>
-            <td class="label" style="width:30%;">Cabeza</td>
-            <td class="value"></td>
-        </tr>
-        <tr>
-            <td class="label">Cuello</td>
-            <td class="value"></td>
-        </tr>
-        <tr>
-            <td class="label">Tórax</td>
-            <td class="value"></td>
-        </tr>
-        <tr>
-            <td class="label">Abdomen</td>
-            <td class="value"></td>
-        </tr>
-        <tr>
-            <td class="label">Pelvis</td>
-            <td class="value"></td>
-        </tr>
-        <tr>
-            <td class="label">Extremidades</td>
-            <td class="value"></td>
-        </tr>
-    </table>
-
     {{-- 8. DIAGNÓSTICO --}}
-    @if($appointment->cie10_code)
     <table>
         <tr>
             <td colspan="3" class="section-title">8. DIAGNÓSTICO</td>
@@ -272,15 +252,24 @@
             <td class="label" style="width:50%;">DESCRIPCIÓN</td>
             <td class="label" style="width:30%;">TIPO</td>
         </tr>
-        <tr>
-            <td class="value" style="font-weight:bold;">{{ $appointment->cie10_code }}</td>
-            <td class="value">{{ $appointment->cie10_description }}</td>
-            <td class="value" style="text-transform:uppercase;">
-                {{ \App\Modules\Triage\Models\Appointment::DIAGNOSIS_TYPES[$appointment->diagnosis_type] ?? $appointment->diagnosis_type }}
-            </td>
-        </tr>
+        @forelse($appointment->diagnoses as $i => $diag)
+            <tr>
+                <td class="value" style="font-weight:bold;">{{ $i === 0 ? 'PRINCIPAL: ' : 'ASOCIADO: ' }}{{ $diag->cie10_code }}</td>
+                <td class="value">{{ $diag->cie10_description }}</td>
+                <td class="value" style="text-transform:uppercase;">{{ \App\Modules\Triage\Models\Appointment::DIAGNOSIS_TYPES[$diag->diagnosis_type] ?? '' }}</td>
+            </tr>
+        @empty
+            @if($appointment->cie10_code)
+                <tr>
+                    <td class="value" style="font-weight:bold;">PRINCIPAL: {{ $appointment->cie10_code }}</td>
+                    <td class="value">{{ $appointment->cie10_description }}</td>
+                    <td class="value" style="text-transform:uppercase;">{{ \App\Modules\Triage\Models\Appointment::DIAGNOSIS_TYPES[$appointment->diagnosis_type] ?? '' }}</td>
+                </tr>
+            @else
+                <tr><td colspan="3" class="value">No registrado</td></tr>
+            @endif
+        @endforelse
     </table>
-    @endif
 
     {{-- 9. PLAN DE TRATAMIENTO / RECETA --}}
     @if($appointment->prescriptions && $appointment->prescriptions->count() > 0)

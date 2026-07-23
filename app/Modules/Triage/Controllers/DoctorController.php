@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use App\Modules\Triage\Models\Appointment;
 use App\Modules\Triage\Models\Cie10;
 use App\Modules\Triage\Models\Prescription;
+use App\Modules\Triage\Models\AppointmentDiagnosis;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
@@ -30,7 +31,7 @@ class DoctorController extends Controller
     {
         $patient = \App\Models\User::findOrFail($user_id);
 
-        $appointments = Appointment::with(['doctor', 'vitalSigns', 'prescriptions'])
+        $appointments = Appointment::with(['doctor', 'vitalSigns', 'prescriptions', 'diagnoses'])
             ->where('user_id', $user_id)
             ->orderBy('appointment_date', 'desc')
             ->get();
@@ -77,8 +78,11 @@ class DoctorController extends Controller
 
         $validated = $request->validate([
             'anamnesis'       => 'required|string|min:10|no_primera_persona',
-            'cie10_code'      => 'required|string|max:10|exists:triage_cie10,code',
-            'diagnosis_type'  => 'required|in:presuntivo_ingreso,definitivo_ingreso,presuntivo_alta,definitivo_alta',
+            'physical_exam'   => 'nullable|string|max:2000',
+            'diagnoses'                     => 'required|array|min:1',
+            'diagnoses.*.cie10_code'        => 'required|string|exists:triage_cie10,code',
+            'diagnoses.*.diagnosis_type'    => 'required|in:presuntivo_ingreso,definitivo_ingreso,presuntivo_alta,definitivo_alta',
+            'diagnoses.*.is_primary'        => 'boolean',
             // Structured antecedentes
             'ant_hta'              => 'boolean',
             'ant_hta_years'        => 'nullable|integer|min:1|max:100',
@@ -102,7 +106,8 @@ class DoctorController extends Controller
         ]);
 
         // Always re-fetch the description from the catalog — never trust client-side data
-        $cie10 = Cie10::where('code', $validated['cie10_code'])->firstOrFail();
+        $primaryDiagnosis = $validated['diagnoses'][0];
+        $primaryCie10 = Cie10::where('code', $primaryDiagnosis['cie10_code'])->firstOrFail();
 
         $htaActive = $request->boolean('ant_hta');
         $dmActive  = $request->boolean('ant_dm');
@@ -110,9 +115,10 @@ class DoctorController extends Controller
 
         $appointment->update([
             'anamnesis'         => $validated['anamnesis'],
-            'cie10_code'        => $cie10->code,
-            'cie10_description' => $cie10->description,
-            'diagnosis_type'    => $validated['diagnosis_type'],
+            'physical_exam'     => $validated['physical_exam'] ?? null,
+            'cie10_code'        => $primaryCie10->code,
+            'cie10_description' => $primaryCie10->description,
+            'diagnosis_type'    => $primaryDiagnosis['diagnosis_type'],
             'status'            => 'completed',
             // HTA — clear sub-fields when unchecked
             'ant_hta'           => $htaActive,
@@ -129,6 +135,18 @@ class DoctorController extends Controller
             'ant_chronic_other' => in_array('otra', $chronicList) ? $validated['ant_chronic_other'] : null,
             'ant_observations'  => $validated['ant_observations'] ?? null,
         ]);
+
+        foreach ($validated['diagnoses'] as $i => $diag) {
+            $cie10 = Cie10::where('code', $diag['cie10_code'])->first();
+
+            AppointmentDiagnosis::create([
+                'appointment_id' => $appointment->id,
+                'cie10_code' => $diag['cie10_code'],
+                'cie10_description' => $cie10?->description ?? '',
+                'diagnosis_type' => $diag['diagnosis_type'],
+                'is_primary' => $i === 0,
+            ]);
+        }
 
         // Create prescriptions if provided
         if (!empty($validated['prescriptions'])) {
@@ -194,7 +212,7 @@ class DoctorController extends Controller
 
     public function pdf(Appointment $appointment)
     {
-        $appointment->load(['user', 'doctor', 'vitalSigns', 'prescriptions']);
+        $appointment->load(['user', 'doctor', 'vitalSigns', 'prescriptions', 'diagnoses']);
 
         $pdf = Pdf::loadView('triage.pdf.formulario002', compact('appointment'));
 

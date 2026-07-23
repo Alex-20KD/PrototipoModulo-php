@@ -265,79 +265,66 @@
     </div>
 
     <div class="glass-card mb-4">
-        <h5 class="card-section-title"><i class="bi bi-search me-2"></i>Diagnóstico CIE-10</h5>
+        <h5 class="card-section-title"><i class="bi bi-clipboard2-pulse me-2"></i>3. Examen Físico Regional</h5>
+        <p class="section-subtitle">📋 Exclusivo del médico. Describa hallazgos por sistemas: cardiovascular, respiratorio, abdominal, neurológico, etc.</p>
+        <textarea class="form-control" name="physical_exam" rows="5" maxlength="2000"
+                  placeholder="Cardiovascular: ruidos cardíacos rítmicos, sin soplos. Respiratorio: murmullo vesicular conservado...">{{ old('physical_exam') }}</textarea>
+    </div>
 
-        <div class="row">
-            <div class="col-md-8 mb-3">
-                <label for="cie10-search" class="form-label">Buscar Diagnóstico CIE-10 <span class="text-danger">*</span></label>
-                <div style="position: relative;">
-                    <input type="text" class="form-control" id="cie10-search"
-                           placeholder="Escriba al menos 2 caracteres... (ej: diabetes, J00, gastritis)"
-                           autocomplete="off">
-                    <input type="hidden" name="cie10_code" id="cie10-code" value="{{ old('cie10_code') }}" required>
-                    <div id="cie10-results" class="cie10-dropdown"></div>
-                </div>
-                <div id="cie10-selected" class="cie10-selected-badge" style="display: none;">
-                    <span id="cie10-selected-text"></span>
-                    <button type="button" id="cie10-clear" class="cie10-clear-btn" title="Cambiar diagnóstico">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
+    @php
+        $diagTypes = [
+            'presuntivo_ingreso' => ['label' => 'Presuntivo de Ingreso', 'desc' => 'Sospecha al momento de la admisión', 'icon' => '🔍'],
+            'definitivo_ingreso' => ['label' => 'Definitivo de Ingreso', 'desc' => 'Confirmado al momento de la admisión', 'icon' => '✅'],
+            'presuntivo_alta' => ['label' => 'Presuntivo de Alta', 'desc' => 'Aún en sospecha al dar el alta', 'icon' => '⚠️'],
+            'definitivo_alta' => ['label' => 'Definitivo de Alta', 'desc' => 'Confirmado al momento del alta', 'icon' => '✔️'],
+        ];
+    @endphp
+    <div class="glass-card mb-4">
+        <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+            <h5 class="card-section-title mb-0"><i class="bi bi-search me-2"></i>4. Diagnósticos (CIE-10)</h5>
+            <button type="button" id="add-diagnosis" class="btn btn-outline-glass btn-sm"><i class="bi bi-plus-circle me-1"></i> Agregar Diagnóstico</button>
+        </div>
+        <p class="section-subtitle">Agregue todos los diagnósticos del paciente. El primero se considera el principal.</p>
+        <div id="diagnoses-container"></div>
+        <div id="diagnoses-client-error" class="field-error" style="display:none;">Debe agregar al menos un diagnóstico CIE-10.</div>
+    </div>
+
+    <template id="diagnosis-template">
+        <div class="diagnosis-row" data-index="__INDEX__">
+            <div class="diagnosis-row-header">
+                <span class="diagnosis-row-title"></span>
+                <button type="button" class="btn-remove-diagnosis"><i class="bi bi-trash me-1"></i>Eliminar</button>
             </div>
-
-            <div class="col-md-4 mb-3">
-                <label for="diagnosis_type" class="form-label">Tipo de Diagnóstico <span class="text-danger">*</span></label>
-                <div class="diagnosis-type-grid">
-                    @php
-                        $diagTypes = [
-                            'presuntivo_ingreso' => [
-                                'label' => 'Presuntivo de Ingreso',
-                                'desc'  => 'Sospecha al momento de la admisión',
-                                'icon'  => '🔍',
-                                'color' => 'warning'
-                            ],
-                            'definitivo_ingreso' => [
-                                'label' => 'Definitivo de Ingreso',
-                                'desc'  => 'Confirmado al momento de la admisión',
-                                'icon'  => '✅',
-                                'color' => 'success'
-                            ],
-                            'presuntivo_alta' => [
-                                'label' => 'Presuntivo de Alta',
-                                'desc'  => 'Aún en sospecha al dar el alta',
-                                'icon'  => '⚠️',
-                                'color' => 'warning'
-                            ],
-                            'definitivo_alta' => [
-                                'label' => 'Definitivo de Alta',
-                                'desc'  => 'Confirmado al momento del alta',
-                                'icon'  => '✔️',
-                                'color' => 'success'
-                            ],
-                        ];
-                    @endphp
-
-                    @foreach($diagTypes as $value => $type)
-                    <label class="diagnosis-card {{ old('diagnosis_type') === $value ? 'selected' : '' }}"
-                           for="dt_{{ $value }}">
-                        <input type="radio"
-                               id="dt_{{ $value }}"
-                               name="diagnosis_type"
-                               value="{{ $value }}"
-                               {{ old('diagnosis_type') === $value ? 'checked' : '' }}
-                               style="display:none;">
-                        <span class="diag-icon">{{ $type['icon'] }}</span>
-                        <span class="diag-label">{{ $type['label'] }}</span>
-                        <span class="diag-desc">{{ $type['desc'] }}</span>
-                    </label>
-                    @endforeach
+            <div class="row">
+                <div class="col-md-7 mb-3">
+                    <label class="form-label">Buscar Diagnóstico CIE-10 <span class="text-danger">*</span></label>
+                    <div class="diagnosis-search-wrap">
+                        <input type="text" class="form-control diagnosis-search" id="diag-search-__INDEX__" placeholder="Escriba al menos 2 caracteres... (ej: diabetes, J00, gastritis)" autocomplete="off" required>
+                        <input type="hidden" class="diagnosis-code" name="diagnoses[__INDEX__][cie10_code]" required>
+                        <input type="hidden" class="diagnosis-primary" name="diagnoses[__INDEX__][is_primary]" value="0">
+                        <div class="diagnosis-results cie10-dropdown"></div>
+                    </div>
+                    <div class="diagnosis-selected cie10-selected-badge" style="display:none;">
+                        <span class="diagnosis-selected-text"></span>
+                        <button type="button" class="diagnosis-clear cie10-clear-btn" title="Cambiar diagnóstico"><i class="bi bi-x-lg"></i></button>
+                    </div>
                 </div>
-                @error('diagnosis_type')
-                    <div class="field-error">{{ $message }}</div>
-                @enderror
+                <div class="col-md-5 mb-3">
+                    <label class="form-label">Tipo de Diagnóstico <span class="text-danger">*</span></label>
+                    <div class="diagnosis-type-grid">
+                        @foreach($diagTypes as $value => $type)
+                            <label class="diagnosis-card" for="diag-__INDEX__-{{ $value }}">
+                                <input type="radio" id="diag-__INDEX__-{{ $value }}" name="diagnoses[__INDEX__][diagnosis_type]" value="{{ $value }}" style="display:none;" required>
+                                <span class="diag-icon">{{ $type['icon'] }}</span>
+                                <span class="diag-label">{{ $type['label'] }}</span>
+                                <span class="diag-desc">{{ $type['desc'] }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </template>
 
     <div class="glass-card mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -506,6 +493,14 @@
     .cie10-clear-btn:hover {
         background: rgba(239, 68, 68, 0.15);
     }
+    .diagnosis-row {
+        background: rgba(255, 255, 255, 0.02); border: 1px solid var(--glass-border);
+        border-radius: 12px; padding: 1rem; margin-bottom: 0.9rem;
+    }
+    .diagnosis-row-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+    .diagnosis-row-title { color: var(--primary-light); font-size: 0.9rem; font-weight: 600; }
+    .btn-remove-diagnosis { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; border-radius: 6px; font-size: 0.8rem; padding: 0.25rem 0.6rem; }
+    .diagnosis-search-wrap { position: relative; }
 
     /* Prescription rows */
     .prescription-row {
@@ -721,77 +716,142 @@
         checkAnamnesis();
     }
 
-    // ── CIE-10 Search with debounce ──
-    const searchInput = document.getElementById('cie10-search');
-    const codeInput = document.getElementById('cie10-code');
-    const resultsDiv = document.getElementById('cie10-results');
-    const selectedDiv = document.getElementById('cie10-selected');
-    const selectedText = document.getElementById('cie10-selected-text');
-    const clearBtn = document.getElementById('cie10-clear');
-    let debounceTimer = null;
+    // ── Dynamic CIE-10 diagnosis rows ──
+    var diagnosisIndex = 0;
+    var diagnosesContainer = document.getElementById('diagnoses-container');
+    var diagnosisTemplate = document.getElementById('diagnosis-template');
+    var addDiagnosisButton = document.getElementById('add-diagnosis');
+    var diagnosesClientError = document.getElementById('diagnoses-client-error');
 
-    searchInput.addEventListener('keyup', function() {
-        clearTimeout(debounceTimer);
-        const q = this.value.trim();
+    function addDiagnosisRow(values) {
+        var index = diagnosisIndex++;
+        var fragment = diagnosisTemplate.content.cloneNode(true);
+        var row = fragment.querySelector('.diagnosis-row');
+        row.innerHTML = row.innerHTML.replaceAll('__INDEX__', index);
+        row.dataset.index = index;
+        diagnosesContainer.appendChild(row);
+        bindDiagnosisRow(row);
 
-        if (q.length < 2) {
-            resultsDiv.classList.remove('show');
-            resultsDiv.innerHTML = '';
-            return;
+        if (values) {
+            setDiagnosis(row, values.cie10_code || '', values.cie10_description || values.cie10_code || '');
+            var typeInput = row.querySelector('input[name="diagnoses[' + index + '][diagnosis_type]"][value="' + values.diagnosis_type + '"]');
+            if (typeInput) {
+                typeInput.checked = true;
+                typeInput.closest('.diagnosis-card').classList.add('selected');
+            }
         }
-
-        debounceTimer = setTimeout(function() {
-            fetch('/triage/doctor/cie10?q=' + encodeURIComponent(q))
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    resultsDiv.innerHTML = '';
-                    if (data.length === 0) {
-                        resultsDiv.innerHTML = '<div class="cie10-no-results"><i class="bi bi-search me-1"></i>No se encontraron resultados</div>';
-                    } else {
-                        data.forEach(function(item) {
-                            var div = document.createElement('div');
-                            div.className = 'cie10-item';
-                            div.innerHTML = '<span class="cie10-item-code">' + item.code + '</span>' +
-                                            '<span class="cie10-item-desc">' + item.description + '</span>';
-                            div.addEventListener('click', function() {
-                                selectCie10(item.code, item.description);
-                            });
-                            resultsDiv.appendChild(div);
-                        });
-                    }
-                    resultsDiv.classList.add('show');
-                })
-                .catch(function() {
-                    resultsDiv.innerHTML = '<div class="cie10-no-results">Error al buscar</div>';
-                    resultsDiv.classList.add('show');
-                });
-        }, 300);
-    });
-
-    function selectCie10(code, description) {
-        codeInput.value = code;
-        searchInput.value = code + ' — ' + description;
-        searchInput.setAttribute('readonly', true);
-        searchInput.style.opacity = '0.7';
-        resultsDiv.classList.remove('show');
-        resultsDiv.innerHTML = '';
-        selectedText.textContent = code + ' — ' + description;
-        selectedDiv.style.display = 'inline-flex';
+        refreshDiagnosisRows();
     }
 
-    clearBtn.addEventListener('click', function() {
-        codeInput.value = '';
-        searchInput.value = '';
-        searchInput.removeAttribute('readonly');
-        searchInput.style.opacity = '1';
-        selectedDiv.style.display = 'none';
-        searchInput.focus();
-    });
+    function bindDiagnosisRow(row) {
+        var search = row.querySelector('.diagnosis-search');
+        var code = row.querySelector('.diagnosis-code');
+        var results = row.querySelector('.diagnosis-results');
+        var selected = row.querySelector('.diagnosis-selected');
+        var selectedText = row.querySelector('.diagnosis-selected-text');
+        var clearButton = row.querySelector('.diagnosis-clear');
+        var debounceTimer;
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
-            resultsDiv.classList.remove('show');
+        search.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            var query = this.value.trim();
+            if (query.length < 2) {
+                results.classList.remove('show');
+                results.innerHTML = '';
+                return;
+            }
+            debounceTimer = setTimeout(function() {
+                fetch('/triage/doctor/cie10?q=' + encodeURIComponent(query))
+                    .then(function(response) { return response.json(); })
+                    .then(function(diagnoses) {
+                        results.innerHTML = '';
+                        if (!diagnoses.length) {
+                            results.innerHTML = '<div class="cie10-no-results">No se encontraron resultados</div>';
+                        } else {
+                            diagnoses.forEach(function(diagnosis) {
+                                var option = document.createElement('div');
+                                option.className = 'cie10-item';
+                                var itemCode = document.createElement('span');
+                                itemCode.className = 'cie10-item-code';
+                                itemCode.textContent = diagnosis.code;
+                                var itemDescription = document.createElement('span');
+                                itemDescription.className = 'cie10-item-desc';
+                                itemDescription.textContent = diagnosis.description;
+                                option.appendChild(itemCode);
+                                option.appendChild(itemDescription);
+                                option.addEventListener('click', function() {
+                                    setDiagnosis(row, diagnosis.code, diagnosis.description);
+                                    results.classList.remove('show');
+                                });
+                                results.appendChild(option);
+                            });
+                        }
+                        results.classList.add('show');
+                    });
+            }, 300);
+        });
+
+        clearButton.addEventListener('click', function() {
+            code.value = '';
+            search.value = '';
+            search.removeAttribute('readonly');
+            search.style.opacity = '1';
+            selected.style.display = 'none';
+            search.focus();
+        });
+
+        row.querySelector('.btn-remove-diagnosis').addEventListener('click', function() {
+            row.remove();
+            refreshDiagnosisRows();
+        });
+
+        row.querySelectorAll('.diagnosis-card').forEach(function(card) {
+            card.addEventListener('click', function() {
+                row.querySelectorAll('.diagnosis-card').forEach(function(item) { item.classList.remove('selected'); });
+                card.classList.add('selected');
+                card.querySelector('input').checked = true;
+            });
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!row.contains(event.target)) results.classList.remove('show');
+        });
+    }
+
+    function setDiagnosis(row, diagnosisCode, description) {
+        var search = row.querySelector('.diagnosis-search');
+        row.querySelector('.diagnosis-code').value = diagnosisCode;
+        search.value = diagnosisCode + ' — ' + description;
+        search.setAttribute('readonly', true);
+        search.style.opacity = '0.7';
+        row.querySelector('.diagnosis-selected-text').textContent = diagnosisCode + ' — ' + description;
+        row.querySelector('.diagnosis-selected').style.display = 'inline-flex';
+    }
+
+    function refreshDiagnosisRows() {
+        var rows = diagnosesContainer.querySelectorAll('.diagnosis-row');
+        rows.forEach(function(row, position) {
+            row.querySelector('.diagnosis-row-title').textContent = position === 0 ? 'Diagnóstico Principal' : 'Diagnóstico Asociado ' + position;
+            row.querySelector('.diagnosis-primary').value = position === 0 ? '1' : '0';
+            row.querySelector('.btn-remove-diagnosis').style.display = position === 0 ? 'none' : 'inline-block';
+        });
+        diagnosesClientError.style.display = rows.length ? 'none' : 'block';
+    }
+
+    addDiagnosisButton.addEventListener('click', function() { addDiagnosisRow(); });
+
+    @if(old('diagnoses'))
+        @foreach(old('diagnoses') as $diagnosis)
+            addDiagnosisRow({!! json_encode($diagnosis) !!});
+        @endforeach
+    @else
+        addDiagnosisRow();
+    @endif
+
+    document.getElementById('consultation-form').addEventListener('submit', function(event) {
+        if (!diagnosesContainer.querySelectorAll('.diagnosis-row').length) {
+            event.preventDefault();
+            diagnosesClientError.style.display = 'block';
         }
     });
 
@@ -970,18 +1030,6 @@
         @endforeach
     @endif
 
-    // Restore CIE-10 selection on validation failure
-    @if(old('cie10_code'))
-        (function() {
-            searchInput.value = '{{ old('cie10_code') }}';
-            searchInput.setAttribute('readonly', true);
-            searchInput.style.opacity = '0.7';
-            codeInput.value = '{{ old('cie10_code') }}';
-            selectedText.textContent = '{{ old('cie10_code') }}';
-            selectedDiv.style.display = 'inline-flex';
-        })();
-    @endif
-
     // ── Antecedentes Toggle Handlers ──
     function bindToggle(checkboxId, targetId) {
         var cb = document.getElementById(checkboxId);
@@ -997,18 +1045,6 @@
     bindToggle('ant_dm', 'dm-details');
     bindToggle('ant_dm_treatment', 'dm-medication-wrapper');
     bindToggle('chronic_otra', 'chronic-other-wrapper');
-
-    // ── Diagnosis Cards JS ──
-    document.querySelectorAll('.diagnosis-card').forEach(function(card) {
-        card.addEventListener('click', function() {
-            document.querySelectorAll('.diagnosis-card').forEach(function(c) {
-                c.classList.remove('selected');
-            });
-            this.classList.add('selected');
-            var input = this.querySelector('input[type="radio"]');
-            if(input) input.checked = true;
-        });
-    });
 
 })();
 </script>

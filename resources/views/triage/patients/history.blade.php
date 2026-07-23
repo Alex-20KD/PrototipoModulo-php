@@ -74,7 +74,14 @@
             </div>
         @endif
 
-        @if ($appointment->cie10_code)
+        @if ($appointment->diagnoses->isNotEmpty())
+            <div class="clinical-block mb-3">
+                <h4><i class="bi bi-clipboard2-pulse me-1"></i>Diagnósticos</h4>
+                @foreach ($appointment->diagnoses as $i => $diagnosis)
+                    <p class="mb-1"><span class="badge-status badge-assigned">{{ $i === 0 ? 'Principal' : 'Asociado' }} · {{ $diagnosis->cie10_code }}</span> {{ $diagnosis->cie10_description }} <span class="text-secondary ms-1">· {{ \App\Modules\Triage\Models\Appointment::DIAGNOSIS_TYPES[$diagnosis->diagnosis_type] ?? '' }}</span></p>
+                @endforeach
+            </div>
+        @elseif ($appointment->cie10_code)
             <div class="clinical-block mb-3">
                 <h4><i class="bi bi-clipboard2-pulse me-1"></i>Diagnóstico</h4>
                 <p class="mb-0"><span class="badge-status badge-assigned">{{ $appointment->cie10_code }}</span> {{ $appointment->cie10_description }} <span class="text-secondary ms-1">· {{ $appointment->diagnosis_type_label }}</span></p>
