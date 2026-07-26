@@ -61,6 +61,12 @@
             color: var(--primary-light) !important;
         }
         .nav-link i { margin-right: 0.35rem; }
+        .navbar-toggler {
+            color: var(--primary-light); border: 1px solid var(--glass-border) !important;
+            border-radius: 9px; padding: 0.4rem 0.65rem;
+        }
+        .navbar-toggler:focus { box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.18); }
+        .navbar-toggler i { font-size: 1.4rem; line-height: 1; }
 
         .glass-card {
             background: var(--card-bg); backdrop-filter: blur(16px);
@@ -183,6 +189,16 @@
         .icon-circle-teal { background: rgba(20, 184, 166, 0.15); color: var(--primary-light); }
         .icon-circle-amber { background: rgba(245, 158, 11, 0.15); color: var(--accent); }
         .icon-circle-rose { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                margin-top: 0.75rem; padding-top: 0.75rem;
+                border-top: 1px solid var(--glass-border);
+            }
+            .navbar-nav { gap: 0.25rem; padding-bottom: 0.25rem; }
+            .nav-link { display: block; margin: 0; padding: 0.7rem 0.85rem !important; }
+            .container-main { padding-top: 1.25rem; }
+        }
     </style>
     @yield('styles')
 </head>
@@ -193,8 +209,9 @@
                 <i class="bi bi-hospital"></i>
                 MedTriaje
             </a>
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Abrir menú de navegación">
+                <i class="bi bi-list"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
