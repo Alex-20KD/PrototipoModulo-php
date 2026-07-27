@@ -35,24 +35,42 @@ class ReceptionController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'doctor_id' => 'required|exists:triage_doctors,id',
-            'appointment_time' => 'required|string',
+            'appointment_time' => 'required|in:09:00,09:30,10:00,10:30',
         ]);
 
+        $appointmentDate = Carbon::today()->format('Y-m-d') . ' ' . $validated['appointment_time'] . ':00';
+
+        if (Appointment::where('user_id', $validated['user_id'])
+            ->whereDate('appointment_date', Carbon::today())
+            ->exists()) {
+            return back()->withInput()->withErrors([
+                'appointment_time' => 'El paciente ya tiene una cita agendada para hoy.',
+            ]);
+        }
+
+        if (Appointment::where('doctor_id', $validated['doctor_id'])
+            ->where('appointment_date', $appointmentDate)
+            ->exists()) {
+            return back()->withInput()->withErrors([
+                'appointment_time' => 'El médico ya tiene una cita asignada en ese horario.',
+            ]);
+        }
+
         // Step 1: Find the latest pending vital signs for this patient
-        $pendingVitalSign = VitalSign::where('user_id', $request->user_id)
+        $pendingVitalSign = VitalSign::where('user_id', $validated['user_id'])
             ->where('status', 'pending')
             ->latest()
             ->first();
 
         // Step 2: Create the appointment with vital_signs_id (or null if none)
         $appointment = Appointment::create([
-            'user_id' => $request->user_id,
-            'doctor_id' => $request->doctor_id,
+            'user_id' => $validated['user_id'],
+            'doctor_id' => $validated['doctor_id'],
             'vital_signs_id' => $pendingVitalSign?->id,
-            'appointment_date' => Carbon::today()->format('Y-m-d') . ' ' . $request->appointment_time . ':00',
+            'appointment_date' => $appointmentDate,
             'status' => 'scheduled',
         ]);
 
