@@ -17,6 +17,7 @@ class VitalSign extends Model
         'height_cm',
         'temperature',
         'heart_rate',
+        'respiratory_rate',
         'reason_for_consultation',
         'status',
     ];

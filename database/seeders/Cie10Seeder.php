@@ -151,6 +151,11 @@ class Cie10Seeder extends Seeder
             ['code' => 'Z76',   'description' => 'Personas en contacto con servicios de salud por otras circunstancias'],
         ];
 
-        DB::table('triage_cie10')->insert($codes);
+        foreach ($codes as $code) {
+            DB::table('triage_cie10')->updateOrInsert(
+                ['code' => $code['code']],
+                ['description' => $code['description']],
+            );
+        }
     }
 }

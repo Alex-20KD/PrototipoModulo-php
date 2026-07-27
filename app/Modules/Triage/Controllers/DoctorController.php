@@ -3,6 +3,7 @@
 namespace App\Modules\Triage\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Routing\Controller;
 use App\Modules\Triage\Models\Appointment;
@@ -41,6 +42,12 @@ class DoctorController extends Controller
 
     public function attend(Appointment $appointment)
     {
+        if ($appointment->status === 'completed') {
+            return redirect()
+                ->route('triage.doctor.index')
+                ->with('success', 'Esta cita ya fue completada.');
+        }
+
         $appointment->load(['user', 'doctor', 'vitalSigns']);
 
         return view('triage.doctor.attend', compact('appointment'));
@@ -48,6 +55,12 @@ class DoctorController extends Controller
 
     public function store(Request $request, Appointment $appointment)
     {
+        if ($appointment->status === 'completed') {
+            return redirect()
+                ->route('triage.doctor.index')
+                ->withErrors(['appointment' => 'Esta cita ya fue completada y no puede modificarse.']);
+        }
+
         // Custom rule: reject first-person phrasing (MSP Ecuador clinical standard)
         Validator::extend('no_primera_persona', function ($attribute, $value, $parameters, $validator) {
             $firstPersonPatterns = [
@@ -113,54 +126,55 @@ class DoctorController extends Controller
         $dmActive  = $request->boolean('ant_dm');
         $chronicList = $validated['ant_chronic'] ?? [];
 
-        $appointment->update([
-            'anamnesis'         => $validated['anamnesis'],
-            'physical_exam'     => $validated['physical_exam'] ?? null,
-            'cie10_code'        => $primaryCie10->code,
-            'cie10_description' => $primaryCie10->description,
-            'diagnosis_type'    => $primaryDiagnosis['diagnosis_type'],
-            'status'            => 'completed',
-            // HTA — clear sub-fields when unchecked
-            'ant_hta'           => $htaActive,
-            'ant_hta_years'     => $htaActive ? $validated['ant_hta_years'] : null,
-            'ant_hta_treatment' => $htaActive ? $request->boolean('ant_hta_treatment') : false,
-            'ant_hta_medication'=> $htaActive && $request->boolean('ant_hta_treatment') ? $validated['ant_hta_medication'] : null,
-            // DM — same conditional logic
-            'ant_dm'            => $dmActive,
-            'ant_dm_years'      => $dmActive ? $validated['ant_dm_years'] : null,
-            'ant_dm_treatment'  => $dmActive ? $request->boolean('ant_dm_treatment') : false,
-            'ant_dm_medication' => $dmActive && $request->boolean('ant_dm_treatment') ? $validated['ant_dm_medication'] : null,
-            // Chronic diseases
-            'ant_chronic'       => $chronicList,
-            'ant_chronic_other' => in_array('otra', $chronicList) ? $validated['ant_chronic_other'] : null,
-            'ant_observations'  => $validated['ant_observations'] ?? null,
-        ]);
-
-        foreach ($validated['diagnoses'] as $i => $diag) {
-            $cie10 = Cie10::where('code', $diag['cie10_code'])->first();
-
-            AppointmentDiagnosis::create([
-                'appointment_id' => $appointment->id,
-                'cie10_code' => $diag['cie10_code'],
-                'cie10_description' => $cie10?->description ?? '',
-                'diagnosis_type' => $diag['diagnosis_type'],
-                'is_primary' => $i === 0,
+        DB::transaction(function () use ($appointment, $validated, $request, $primaryCie10, $primaryDiagnosis, $htaActive, $dmActive, $chronicList) {
+            $appointment->update([
+                'anamnesis'         => $validated['anamnesis'],
+                'physical_exam'     => $validated['physical_exam'] ?? null,
+                'cie10_code'        => $primaryCie10->code,
+                'cie10_description' => $primaryCie10->description,
+                'diagnosis_type'    => $primaryDiagnosis['diagnosis_type'],
+                'status'            => 'completed',
+                'ant_hta'           => $htaActive,
+                'ant_hta_years'     => $htaActive ? $validated['ant_hta_years'] : null,
+                'ant_hta_treatment' => $htaActive ? $request->boolean('ant_hta_treatment') : false,
+                'ant_hta_medication'=> $htaActive && $request->boolean('ant_hta_treatment') ? $validated['ant_hta_medication'] : null,
+                'ant_dm'            => $dmActive,
+                'ant_dm_years'      => $dmActive ? $validated['ant_dm_years'] : null,
+                'ant_dm_treatment'  => $dmActive ? $request->boolean('ant_dm_treatment') : false,
+                'ant_dm_medication' => $dmActive && $request->boolean('ant_dm_treatment') ? $validated['ant_dm_medication'] : null,
+                'ant_chronic'       => $chronicList,
+                'ant_chronic_other' => in_array('otra', $chronicList) ? $validated['ant_chronic_other'] : null,
+                'ant_observations'  => $validated['ant_observations'] ?? null,
             ]);
-        }
 
-        // Create prescriptions if provided
-        if (!empty($validated['prescriptions'])) {
-            foreach ($validated['prescriptions'] as $rx) {
-                Prescription::create([
+            $appointment->diagnoses()->delete();
+            $appointment->prescriptions()->delete();
+
+            foreach ($validated['diagnoses'] as $i => $diag) {
+                $cie10 = Cie10::where('code', $diag['cie10_code'])->first();
+
+                AppointmentDiagnosis::create([
                     'appointment_id' => $appointment->id,
-                    'generic_name'   => $rx['generic_name'],
-                    'concentration'  => $rx['concentration'],
-                    'form'           => $rx['form'],
-                    'quantity'       => $rx['quantity'],
-                    'indications'    => $rx['indications'],
+                    'cie10_code' => $diag['cie10_code'],
+                    'cie10_description' => $cie10?->description ?? '',
+                    'diagnosis_type' => $diag['diagnosis_type'],
+                    'is_primary' => $i === 0,
                 ]);
             }
-        }
+
+            if (!empty($validated['prescriptions'])) {
+                foreach ($validated['prescriptions'] as $rx) {
+                    Prescription::create([
+                        'appointment_id' => $appointment->id,
+                        'generic_name'   => $rx['generic_name'],
+                        'concentration'  => $rx['concentration'],
+                        'form'           => $rx['form'],
+                        'quantity'       => $rx['quantity'],
+                        'indications'    => $rx['indications'],
+                    ]);
+                }
+            }
+        });
 
         return redirect()->route('triage.doctor.index')
             ->with('success', '¡Consulta guardada exitosamente! La cita ha sido finalizada.');
@@ -174,8 +188,10 @@ class DoctorController extends Controller
 
         $query = $request->input('q');
 
-        $results = Cie10::where('description', 'LIKE', "%{$query}%")
-            ->orWhere('code', 'LIKE', "%{$query}%")
+        $results = Cie10::where(function ($q) use ($query) {
+            $q->where('description', 'LIKE', "%{$query}%")
+                ->orWhere('code', 'LIKE', "%{$query}%");
+        })
             ->limit(10)
             ->get(['code', 'description']);
 
@@ -190,10 +206,12 @@ class DoctorController extends Controller
 
         $query = $validated['q'];
 
-        $medications = \Illuminate\Support\Facades\DB::table('triage_medications')
-            ->where('generic_name', 'LIKE', "%{$query}%")
-            ->orWhere('concentration', 'LIKE', "%{$query}%")
-            ->orWhere('form', 'LIKE', "%{$query}%")
+        $medications = DB::table('triage_medications')
+            ->where(function ($q) use ($query) {
+                $q->where('generic_name', 'LIKE', "%{$query}%")
+                    ->orWhere('concentration', 'LIKE', "%{$query}%")
+                    ->orWhere('form', 'LIKE', "%{$query}%");
+            })
             ->orderBy('generic_name')
             ->limit(10)
             ->get(['id', 'generic_name', 'concentration', 'form', 'route', 'controlled'])

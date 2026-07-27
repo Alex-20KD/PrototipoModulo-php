@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Modules\Triage\Models\Appointment;
+use App\Modules\Triage\Models\VitalSign;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 

@@ -75,9 +75,6 @@
                             <a href="{{ route('triage.doctor.attend', $appt->id) }}" class="btn btn-accent btn-sm">
                                 <i class="bi bi-clipboard2-pulse me-1"></i> Atender Paciente
                             </a>
-                            <a href="{{ route('triage.doctor.pdf', $appt->id) }}" class="btn btn-outline-glass btn-sm ms-1">
-                                <i class="bi bi-file-earmark-pdf me-1"></i> PDF
-                            </a>
                         @endif
                     </td>
                 </tr>

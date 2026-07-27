@@ -75,6 +75,11 @@
                         <span class="vital-lbl">Frec. Cardíaca</span>
                     </div>
                     <div class="vital-item">
+                        <span class="vital-icon"><i class="bi bi-lungs"></i></span>
+                        <span class="vital-val">{{ $vs->respiratory_rate ?? '—' }} rpm</span>
+                        <span class="vital-lbl">Frec. Respiratoria</span>
+                    </div>
+                    <div class="vital-item">
                         <span class="vital-icon"><i class="bi bi-speedometer2"></i></span>
                         <span class="vital-val">{{ $vs->weight_kg }} kg</span>
                         <span class="vital-lbl">Peso</span>

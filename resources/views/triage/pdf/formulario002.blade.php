@@ -236,7 +236,7 @@
             <td class="value">{{ $vs ? $vs->temperature : '' }}</td>
             <td class="value">{{ $vs ? $vs->blood_pressure : '' }}</td>
             <td class="value">{{ $vs ? $vs->heart_rate : '' }}</td>
-            <td class="value"></td>
+            <td class="value">{{ $vs ? $vs->respiratory_rate : '' }}</td>
             <td class="value">{{ $vs ? $vs->weight_kg : '' }}</td>
             <td class="value">{{ $vs ? $vs->height_cm : '' }}</td>
         </tr>

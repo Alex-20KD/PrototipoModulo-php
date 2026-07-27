@@ -68,14 +68,14 @@ class NursingController extends Controller
         }
 
         VitalSign::create([
-            'user_id' => $request->user_id,
-            'blood_pressure' => $request->blood_pressure,
-            'heart_rate' => $request->heart_rate,
-            'weight_kg' => $request->weight_kg,
-            'height_cm' => $request->height_cm,
-            'temperature' => $request->temperature,
-            'respiratory_rate' => $request->respiratory_rate,
-            'reason_for_consultation' => $request->reason_for_consultation,
+            'user_id' => $validated['user_id'],
+            'blood_pressure' => $validated['blood_pressure'],
+            'heart_rate' => $validated['heart_rate'],
+            'weight_kg' => $validated['weight_kg'],
+            'height_cm' => $validated['height_cm'],
+            'temperature' => $validated['temperature'],
+            'respiratory_rate' => $validated['respiratory_rate'],
+            'reason_for_consultation' => $validated['reason_for_consultation'],
             'status' => 'pending',
         ]);
 

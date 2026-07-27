@@ -67,6 +67,8 @@
                 <h4><i class="bi bi-heart-pulse me-1"></i>Signos vitales</h4>
                 <div class="vital-signs-grid">
                     <span><small>Presión arterial</small>{{ $appointment->vitalSigns->blood_pressure }}</span>
+                    <span><small>Frec. cardíaca</small>{{ $appointment->vitalSigns->heart_rate }} bpm</span>
+                    <span><small>Frec. respiratoria</small>{{ $appointment->vitalSigns->respiratory_rate }} rpm</span>
                     <span><small>Temperatura</small>{{ $appointment->vitalSigns->temperature }} °C</span>
                     <span><small>Peso</small>{{ $appointment->vitalSigns->weight_kg }} kg</span>
                     <span><small>Estatura</small>{{ $appointment->vitalSigns->height_cm }} cm</span>
