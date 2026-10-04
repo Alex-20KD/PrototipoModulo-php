@@ -1,7 +1,8 @@
-.git
-.env
-.env.*
-database/database.sqlite
-node_modules
-storage/logs/*
-vendor
+/.git
+/.env
+/.env.*
+!/.env.example
+/database/database.sqlite
+/node_modules
+/storage/logs
+/vendor
