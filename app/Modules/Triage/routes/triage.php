@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Modules\Triage\Controllers\DoctorController;
 use App\Modules\Triage\Controllers\NursingController;
 use App\Modules\Triage\Controllers\ReceptionController;
-use App\Modules\Triage\Controllers\DoctorController;
 use App\Modules\Triage\Controllers\ReportsController;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('triage')->group(function () {
 

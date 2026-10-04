@@ -2,6 +2,7 @@
 
 namespace App\Modules\Triage\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -25,7 +26,7 @@ class VitalSign extends Model
     // References host system's users table
     public function user(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function appointment(): HasOne

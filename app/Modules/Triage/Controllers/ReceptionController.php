@@ -2,11 +2,11 @@
 
 namespace App\Modules\Triage\Controllers;
 
+use App\Modules\Triage\Models\Appointment;
+use App\Modules\Triage\Models\VitalSign;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use App\Modules\Triage\Models\VitalSign;
-use App\Modules\Triage\Models\Appointment;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ReceptionController extends Controller
@@ -41,7 +41,7 @@ class ReceptionController extends Controller
             'appointment_time' => 'required|in:09:00,09:30,10:00,10:30',
         ]);
 
-        $appointmentDate = Carbon::today()->format('Y-m-d') . ' ' . $validated['appointment_time'] . ':00';
+        $appointmentDate = Carbon::today()->format('Y-m-d').' '.$validated['appointment_time'].':00';
 
         if (Appointment::where('user_id', $validated['user_id'])
             ->whereDate('appointment_date', Carbon::today())

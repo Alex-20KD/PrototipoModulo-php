@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Modules\Triage\Models\Doctor;
 use App\Modules\Triage\Models\VitalSign;
+use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {

@@ -2,16 +2,17 @@
 
 namespace App\Modules\Triage\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Routing\Controller;
+use App\Models\User;
 use App\Modules\Triage\Models\Appointment;
+use App\Modules\Triage\Models\AppointmentDiagnosis;
 use App\Modules\Triage\Models\Cie10;
 use App\Modules\Triage\Models\Prescription;
-use App\Modules\Triage\Models\AppointmentDiagnosis;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class DoctorController extends Controller
 {
@@ -30,7 +31,7 @@ class DoctorController extends Controller
 
     public function history($user_id)
     {
-        $patient = \App\Models\User::findOrFail($user_id);
+        $patient = User::findOrFail($user_id);
 
         $appointments = Appointment::with(['doctor', 'vitalSigns', 'prescriptions', 'diagnoses'])
             ->where('user_id', $user_id)
@@ -82,6 +83,7 @@ class DoctorController extends Controller
                     return false;
                 }
             }
+
             return true;
         });
 
@@ -90,32 +92,32 @@ class DoctorController extends Controller
         });
 
         $validated = $request->validate([
-            'anamnesis'       => 'required|string|min:10|no_primera_persona',
-            'physical_exam'   => 'nullable|string|max:2000',
-            'diagnoses'                     => 'required|array|min:1',
-            'diagnoses.*.cie10_code'        => 'required|string|exists:triage_cie10,code',
-            'diagnoses.*.diagnosis_type'    => 'required|in:presuntivo_ingreso,definitivo_ingreso,presuntivo_alta,definitivo_alta',
-            'diagnoses.*.is_primary'        => 'boolean',
+            'anamnesis' => 'required|string|min:10|no_primera_persona',
+            'physical_exam' => 'nullable|string|max:2000',
+            'diagnoses' => 'required|array|min:1',
+            'diagnoses.*.cie10_code' => 'required|string|exists:triage_cie10,code',
+            'diagnoses.*.diagnosis_type' => 'required|in:presuntivo_ingreso,definitivo_ingreso,presuntivo_alta,definitivo_alta',
+            'diagnoses.*.is_primary' => 'boolean',
             // Structured antecedentes
-            'ant_hta'              => 'boolean',
-            'ant_hta_years'        => 'nullable|integer|min:1|max:100',
-            'ant_hta_treatment'    => 'boolean',
-            'ant_hta_medication'   => 'nullable|string|max:200',
-            'ant_dm'               => 'boolean',
-            'ant_dm_years'         => 'nullable|integer|min:1|max:100',
-            'ant_dm_treatment'     => 'boolean',
-            'ant_dm_medication'    => 'nullable|string|max:200',
-            'ant_chronic'          => 'nullable|array',
-            'ant_chronic.*'        => 'in:tiroides,vih,ets,psiquiatrica,cancer,cardiopatia,otra',
-            'ant_chronic_other'    => 'nullable|string|max:300',
-            'ant_observations'     => 'nullable|string',
+            'ant_hta' => 'boolean',
+            'ant_hta_years' => 'nullable|integer|min:1|max:100',
+            'ant_hta_treatment' => 'boolean',
+            'ant_hta_medication' => 'nullable|string|max:200',
+            'ant_dm' => 'boolean',
+            'ant_dm_years' => 'nullable|integer|min:1|max:100',
+            'ant_dm_treatment' => 'boolean',
+            'ant_dm_medication' => 'nullable|string|max:200',
+            'ant_chronic' => 'nullable|array',
+            'ant_chronic.*' => 'in:tiroides,vih,ets,psiquiatrica,cancer,cardiopatia,otra',
+            'ant_chronic_other' => 'nullable|string|max:300',
+            'ant_observations' => 'nullable|string',
             // Prescriptions
-            'prescriptions'                => 'nullable|array',
+            'prescriptions' => 'nullable|array',
             'prescriptions.*.generic_name' => 'required_with:prescriptions|string',
-            'prescriptions.*.concentration'=> 'required_with:prescriptions|string',
-            'prescriptions.*.form'         => 'required_with:prescriptions|string',
-            'prescriptions.*.quantity'     => 'required_with:prescriptions|integer|min:1',
-            'prescriptions.*.indications'  => 'required_with:prescriptions|string',
+            'prescriptions.*.concentration' => 'required_with:prescriptions|string',
+            'prescriptions.*.form' => 'required_with:prescriptions|string',
+            'prescriptions.*.quantity' => 'required_with:prescriptions|integer|min:1',
+            'prescriptions.*.indications' => 'required_with:prescriptions|string',
         ]);
 
         // Always re-fetch the description from the catalog — never trust client-side data
@@ -123,28 +125,28 @@ class DoctorController extends Controller
         $primaryCie10 = Cie10::where('code', $primaryDiagnosis['cie10_code'])->firstOrFail();
 
         $htaActive = $request->boolean('ant_hta');
-        $dmActive  = $request->boolean('ant_dm');
+        $dmActive = $request->boolean('ant_dm');
         $chronicList = $validated['ant_chronic'] ?? [];
 
         DB::transaction(function () use ($appointment, $validated, $request, $primaryCie10, $primaryDiagnosis, $htaActive, $dmActive, $chronicList) {
             $appointment->update([
-                'anamnesis'         => $validated['anamnesis'],
-                'physical_exam'     => $validated['physical_exam'] ?? null,
-                'cie10_code'        => $primaryCie10->code,
+                'anamnesis' => $validated['anamnesis'],
+                'physical_exam' => $validated['physical_exam'] ?? null,
+                'cie10_code' => $primaryCie10->code,
                 'cie10_description' => $primaryCie10->description,
-                'diagnosis_type'    => $primaryDiagnosis['diagnosis_type'],
-                'status'            => 'completed',
-                'ant_hta'           => $htaActive,
-                'ant_hta_years'     => $htaActive ? $validated['ant_hta_years'] : null,
+                'diagnosis_type' => $primaryDiagnosis['diagnosis_type'],
+                'status' => 'completed',
+                'ant_hta' => $htaActive,
+                'ant_hta_years' => $htaActive ? $validated['ant_hta_years'] : null,
                 'ant_hta_treatment' => $htaActive ? $request->boolean('ant_hta_treatment') : false,
-                'ant_hta_medication'=> $htaActive && $request->boolean('ant_hta_treatment') ? $validated['ant_hta_medication'] : null,
-                'ant_dm'            => $dmActive,
-                'ant_dm_years'      => $dmActive ? $validated['ant_dm_years'] : null,
-                'ant_dm_treatment'  => $dmActive ? $request->boolean('ant_dm_treatment') : false,
+                'ant_hta_medication' => $htaActive && $request->boolean('ant_hta_treatment') ? $validated['ant_hta_medication'] : null,
+                'ant_dm' => $dmActive,
+                'ant_dm_years' => $dmActive ? $validated['ant_dm_years'] : null,
+                'ant_dm_treatment' => $dmActive ? $request->boolean('ant_dm_treatment') : false,
                 'ant_dm_medication' => $dmActive && $request->boolean('ant_dm_treatment') ? $validated['ant_dm_medication'] : null,
-                'ant_chronic'       => $chronicList,
+                'ant_chronic' => $chronicList,
                 'ant_chronic_other' => in_array('otra', $chronicList) ? $validated['ant_chronic_other'] : null,
-                'ant_observations'  => $validated['ant_observations'] ?? null,
+                'ant_observations' => $validated['ant_observations'] ?? null,
             ]);
 
             $appointment->diagnoses()->delete();
@@ -162,15 +164,15 @@ class DoctorController extends Controller
                 ]);
             }
 
-            if (!empty($validated['prescriptions'])) {
+            if (! empty($validated['prescriptions'])) {
                 foreach ($validated['prescriptions'] as $rx) {
                     Prescription::create([
                         'appointment_id' => $appointment->id,
-                        'generic_name'   => $rx['generic_name'],
-                        'concentration'  => $rx['concentration'],
-                        'form'           => $rx['form'],
-                        'quantity'       => $rx['quantity'],
-                        'indications'    => $rx['indications'],
+                        'generic_name' => $rx['generic_name'],
+                        'concentration' => $rx['concentration'],
+                        'form' => $rx['form'],
+                        'quantity' => $rx['quantity'],
+                        'indications' => $rx['indications'],
                     ]);
                 }
             }

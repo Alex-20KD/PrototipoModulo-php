@@ -2,9 +2,9 @@
 
 namespace App\Modules\Triage\Controllers;
 
+use App\Modules\Triage\Models\VitalSign;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use App\Modules\Triage\Models\VitalSign;
 
 class NursingController extends Controller
 {
@@ -33,37 +33,37 @@ class NursingController extends Controller
             'respiratory_rate' => 'required|integer|min:8|max:40',
             'reason_for_consultation' => 'required|string',
         ], [
-            'blood_pressure.required'  => 'La presión arterial es obligatoria.',
-            'blood_pressure.regex'     => 'Formato inválido. Use el formato 120/80.',
-            'heart_rate.min'           => 'La frecuencia cardíaca mínima es 30 lpm.',
-            'heart_rate.max'           => 'La frecuencia cardíaca máxima es 250 lpm.',
-            'weight_kg.min'            => 'El peso mínimo es 1 kg.',
-            'weight_kg.max'            => 'El peso máximo es 300 kg.',
-            'height_cm.min'            => 'La talla mínima es 30 cm.',
-            'height_cm.max'            => 'La talla máxima es 250 cm.',
-            'temperature.min'          => 'La temperatura mínima registrable es 34°C.',
-            'temperature.max'          => 'La temperatura máxima registrable es 42°C.',
-            'respiratory_rate.min'     => 'La frecuencia respiratoria mínima es 8 rpm.',
-            'respiratory_rate.max'     => 'La frecuencia respiratoria máxima es 40 rpm.',
+            'blood_pressure.required' => 'La presión arterial es obligatoria.',
+            'blood_pressure.regex' => 'Formato inválido. Use el formato 120/80.',
+            'heart_rate.min' => 'La frecuencia cardíaca mínima es 30 lpm.',
+            'heart_rate.max' => 'La frecuencia cardíaca máxima es 250 lpm.',
+            'weight_kg.min' => 'El peso mínimo es 1 kg.',
+            'weight_kg.max' => 'El peso máximo es 300 kg.',
+            'height_cm.min' => 'La talla mínima es 30 cm.',
+            'height_cm.max' => 'La talla máxima es 250 cm.',
+            'temperature.min' => 'La temperatura mínima registrable es 34°C.',
+            'temperature.max' => 'La temperatura máxima registrable es 42°C.',
+            'respiratory_rate.min' => 'La frecuencia respiratoria mínima es 8 rpm.',
+            'respiratory_rate.max' => 'La frecuencia respiratoria máxima es 40 rpm.',
         ]);
 
         $parts = explode('/', $validated['blood_pressure']);
-        $systolic = (int)$parts[0];
-        $diastolic = (int)$parts[1];
+        $systolic = (int) $parts[0];
+        $diastolic = (int) $parts[1];
 
         if ($systolic < 60 || $systolic > 250) {
             return back()->withErrors([
-                'blood_pressure' => 'La presión sistólica debe estar entre 60 y 250 mmHg.'
+                'blood_pressure' => 'La presión sistólica debe estar entre 60 y 250 mmHg.',
             ])->withInput();
         }
         if ($diastolic < 40 || $diastolic > 150) {
             return back()->withErrors([
-                'blood_pressure' => 'La presión diastólica debe estar entre 40 y 150 mmHg.'
+                'blood_pressure' => 'La presión diastólica debe estar entre 40 y 150 mmHg.',
             ])->withInput();
         }
         if ($systolic <= $diastolic) {
             return back()->withErrors([
-                'blood_pressure' => 'La presión sistólica debe ser mayor que la diastólica.'
+                'blood_pressure' => 'La presión sistólica debe ser mayor que la diastólica.',
             ])->withInput();
         }
 

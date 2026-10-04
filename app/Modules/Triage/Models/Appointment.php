@@ -2,6 +2,7 @@
 
 namespace App\Modules\Triage\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,8 +14,8 @@ class Appointment extends Model
     const DIAGNOSIS_TYPES = [
         'presuntivo_ingreso' => 'Presuntivo de Ingreso',
         'definitivo_ingreso' => 'Definitivo de Ingreso',
-        'presuntivo_alta'    => 'Presuntivo de Alta',
-        'definitivo_alta'    => 'Definitivo de Alta',
+        'presuntivo_alta' => 'Presuntivo de Alta',
+        'definitivo_alta' => 'Definitivo de Alta',
     ];
 
     protected $fillable = [
@@ -50,7 +51,7 @@ class Appointment extends Model
     // References host system's users table
     public function user(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function doctor(): BelongsTo
