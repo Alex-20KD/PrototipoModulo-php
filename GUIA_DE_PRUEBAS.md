@@ -12,23 +12,23 @@ La versión entregada es un prototipo funcional para demostrar el flujo clínico
 
 ## 2. Requisitos
 
-- PHP 8.4 o superior.
+- PHP 8.4 (versión oficial del proyecto).
 - Composer 2.
-- Extensión SQLite habilitada en PHP.
+- MySQL 8.4 LTS y extensión `pdo_mysql` habilitada en PHP.
 - Navegador web moderno.
 
 No se requiere instalar Node.js para realizar las pruebas funcionales, ya que la interfaz utiliza recursos cargados desde CDN.
 
 ## 3. Instalación local
 
-Abra una terminal dentro de la carpeta descomprimida del proyecto y ejecute:
+Cree una base de datos local `medtriaje` y un usuario local con acceso a ella.
+Abra una terminal dentro del proyecto y ejecute:
 
 ```bash
 composer install
 cp .env.example .env
 php artisan key:generate
-touch database/database.sqlite
-php artisan migrate:fresh --seed
+php artisan migrate --seed
 php artisan serve
 ```
 
@@ -38,7 +38,9 @@ Luego abra en el navegador:
 http://127.0.0.1:8000/triage/nursing
 ```
 
-> `migrate:fresh --seed` reinicia la base local y carga los datos de demostración. Debe usarse solo para pruebas, porque elimina los datos existentes de la base SQLite local.
+> Use una base local de desarrollo para los datos ficticios. La suite de pruebas
+> utiliza una base MySQL separada llamada `medtriaje_test`; créela antes de
+> ejecutar `composer test` y nunca apunte esa suite a la base de desarrollo.
 
 ## 4. Datos de prueba
 

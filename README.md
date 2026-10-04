@@ -90,17 +90,22 @@ resources/views/triage/
 
 | Tecnología | Uso en el proyecto |
 |---|---|
-| PHP + Laravel | Lógica del módulo, rutas, controladores y modelos |
-| SQLite | Base de datos del prototipo |
-| MySQL | Base de datos prevista para producción e integración |
+| PHP 8.4 + Laravel 13.12.0 | Lógica del módulo, rutas, controladores y modelos |
+| MySQL 8.4 LTS | Base de datos del proyecto |
 | Bootstrap 5 | Interfaz responsiva con estilo glassmorphism dark |
 | DomPDF | Generación de documentos clínicos en PDF |
 | JavaScript + AJAX | Búsqueda dinámica de CIE-10 y medicamentos |
 
 ## 🚀 Ejecución local
 
+Requiere PHP 8.4 con `pdo_mysql`, Composer 2 y MySQL 8.4 LTS. Cree antes
+una base de datos local `medtriaje` y un usuario local con acceso a ella.
+Configure sus credenciales en `.env`; ese archivo no se versiona.
+
 ```bash
 composer install
+cp .env.example .env
+php artisan key:generate
 php artisan migrate
 php artisan db:seed
 php artisan serve
