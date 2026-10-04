@@ -12,35 +12,36 @@ La versión entregada es un prototipo funcional para demostrar el flujo clínico
 
 ## 2. Requisitos
 
-- PHP 8.4 (versión oficial del proyecto).
-- Composer 2.
-- MySQL 8.4 LTS y extensión `pdo_mysql` habilitada en PHP.
+- Docker con Compose (la imagen incluye PHP 8.4, Composer y `pdo_mysql`).
+- MySQL 8.4 LTS se inicia como servicio `db`.
 - Navegador web moderno.
 
 No se requiere instalar Node.js para realizar las pruebas funcionales, ya que la interfaz utiliza recursos cargados desde CDN.
 
 ## 3. Instalación local
 
-Cree una base de datos local `medtriaje` y un usuario local con acceso a ella.
 Abra una terminal dentro del proyecto y ejecute:
 
 ```bash
-composer install
 cp .env.example .env
-php artisan key:generate
-php artisan migrate --seed
-php artisan serve
+docker compose build
+docker compose run --rm --no-deps --entrypoint php app artisan key:generate
+docker compose up -d
+docker compose exec app php artisan migrate --seed
 ```
 
 Luego abra en el navegador:
 
 ```text
-http://127.0.0.1:8000/triage/nursing
+http://127.0.0.1:8080/triage/nursing
 ```
 
 > Use una base local de desarrollo para los datos ficticios. La suite de pruebas
 > utiliza una base MySQL separada llamada `medtriaje_test`; créela antes de
 > ejecutar `composer test` y nunca apunte esa suite a la base de desarrollo.
+> La segunda instancia está en `http://127.0.0.1:8081`; los puertos se pueden
+> cambiar con `APP_PORT` y `APP2_PORT`. `docker compose down` detiene los
+> contenedores sin borrar el volumen de MySQL.
 
 ## 4. Datos de prueba
 

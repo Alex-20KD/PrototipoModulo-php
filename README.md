@@ -98,23 +98,31 @@ resources/views/triage/
 
 ## 🚀 Ejecución local
 
-Requiere PHP 8.4 con `pdo_mysql`, Composer 2 y MySQL 8.4 LTS. Cree antes
-una base de datos local `medtriaje` y un usuario local con acceso a ella.
-Configure sus credenciales en `.env`; ese archivo no se versiona.
+Requiere Docker con Compose. La imagen incluye PHP 8.4 y Composer; Compose
+inicia MySQL 8.4 LTS y dos instancias de la aplicación en una red propia.
+Los valores de `.env.example` son solo ejemplos de desarrollo: cámbielos
+antes de usar el entorno fuera de su equipo. `.env` no se versiona.
 
 ```bash
-composer install
 cp .env.example .env
-php artisan key:generate
-php artisan migrate
-php artisan db:seed
-php artisan serve
+docker compose build
+docker compose run --rm --no-deps --entrypoint php app artisan key:generate
+docker compose up -d
+docker compose exec app php artisan migrate --seed
 ```
 
-Luego, el módulo estará disponible desde:
+La primera instancia estará en `http://localhost:8080` y la segunda en
+`http://localhost:8081`. Cambie `APP_PORT` y `APP2_PORT` en `.env` si esos
+puertos están ocupados. Ambas usan el mismo código, dependencias y MySQL.
+`RUN_MIGRATIONS=false` evita que las dos instancias migren a la vez; si se
+activa, solo `app` migra automáticamente y `app2` mantiene ese valor en `false`.
+La base de datos se crea con `MYSQL_DATABASE` al iniciar MySQL por primera vez.
+Para detener el entorno use `docker compose down` (sin `-v` para conservar datos).
+
+El módulo estará disponible desde:
 
 ```text
-http://localhost:8000/triage/nursing
+http://localhost:8080/triage/nursing
 ```
 
 ## 🗺️ Estado actual y próximos pasos
