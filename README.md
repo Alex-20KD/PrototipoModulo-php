@@ -117,6 +117,8 @@ puertos están ocupados. Ambas usan el mismo código, dependencias y MySQL.
 `RUN_MIGRATIONS=false` evita que las dos instancias migren a la vez; si se
 activa, solo `app` migra automáticamente y `app2` mantiene ese valor en `false`.
 La base de datos se crea con `MYSQL_DATABASE` al iniciar MySQL por primera vez.
+La base `medtriaje_test` y sus permisos se crean también en esa primera
+inicialización; el script no se vuelve a ejecutar sobre un volumen existente.
 Para detener el entorno use `docker compose down` (sin `-v` para conservar datos).
 
 El módulo estará disponible desde:

@@ -37,8 +37,8 @@ http://127.0.0.1:8080/triage/nursing
 ```
 
 > Use una base local de desarrollo para los datos ficticios. La suite de pruebas
-> utiliza una base MySQL separada llamada `medtriaje_test`; créela antes de
-> ejecutar `composer test` y nunca apunte esa suite a la base de desarrollo.
+> utiliza una base MySQL separada llamada `medtriaje_test`, creada junto con
+> el volumen nuevo de MySQL; nunca apunte esa suite a la base de desarrollo.
 > La segunda instancia está en `http://127.0.0.1:8081`; los puertos se pueden
 > cambiar con `APP_PORT` y `APP2_PORT`. `docker compose down` detiene los
 > contenedores sin borrar el volumen de MySQL.
