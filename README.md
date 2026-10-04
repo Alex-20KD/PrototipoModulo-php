@@ -7,7 +7,7 @@ El proyecto está configurado para un entorno de desarrollo reproducible e insta
 ## Requisitos previos
 
 - **Git**
-- **Docker** (incluye Docker Compose)
+- **Docker Engine 24+** con **Docker Compose v2** (el comando `docker compose`, sin guion)
 
 ## Arranque rápido
 
