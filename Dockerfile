@@ -1,3 +1,4 @@
+# PHP 8.4 es la versión oficial del proyecto (ver .php-version).
 FROM php:8.4-apache-bookworm
 
 WORKDIR /var/www/html
@@ -12,12 +13,11 @@ RUN apt-get update \
         libpng-dev \
         libwebp-dev \
         libxml2-dev \
-        libpq-dev \
         libzip-dev \
         libicu-dev \
         libonig-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install pdo_pgsql mbstring bcmath intl zip gd curl dom \
+    && docker-php-ext-install pdo_mysql mbstring bcmath intl zip gd curl dom \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
