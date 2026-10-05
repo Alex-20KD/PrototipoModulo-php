@@ -24,16 +24,16 @@ Sigue estos pasos para levantar el proyecto con sus dependencias y base de datos
    cp .env.example .env
    ```
 
-3. **Levantar los contenedores en segundo plano (y construir la imagen):**
-   ```bash
-   docker compose up -d --build
-   ```
-   *Resultado esperado:* Se descargan las imágenes y se inician los servicios `db`, `app` y `app2`.
+3. **Generar la clave de la aplicación (antes de levantar los contenedores):**
+  ```bash
+   docker compose run --rm --no-deps --entrypoint php app artisan key:generate
+  ```
+   *Por qué antes:* Docker lee el `.env` al crear el contenedor. Si la clave se genera después, los contenedores siguen con `APP_KEY` vacío y las páginas dan error 500.
 
-4. **Generar la clave de la aplicación:**
-   ```bash
-   docker compose exec app php artisan key:generate
-   ```
+4. **Levantar los contenedores (y construir la imagen):**
+  ```bash
+   docker compose up -d --build
+  ```
 
 5. **Ejecutar migraciones y sembrar datos de prueba (seeders):**
    ```bash
@@ -86,6 +86,9 @@ Ambas responden de la misma manera y comparten la misma sesión en base de datos
 - **MySQL tarda en arrancar la primera vez:** Es normal. El contenedor `app` esperará automáticamente a que la base de datos esté lista antes de operar.
 - **Error de contraseña o base de datos no existe:** Si cambiaste las credenciales en el `.env` o la base `medtriaje_test` no se creó, es porque el volumen de Docker retiene el estado de la primera vez. Ejecuta `docker compose down -v` para destruir el volumen y vuelve a iniciar.
 - **Linux con kernel actualizado (error al crear redes en Docker):** Si actualizaste el kernel recientemente sin reiniciar, Docker puede fallar al crear la red interna. Solución: Reinicia tu equipo.
+
+- **Error 500 con `MissingAppKeyException`:** la clave se generó después de levantar los contenedores. Ejecuta `docker compose up -d` para recrearlos.
+- **No puedes borrar el directorio del proyecto:** `storage/` y `bootstrap/cache` los escribe `www-data` desde el contenedor. Usa `sudo rm -rf` o ejecuta antes `docker compose exec app chown -R $(id -u):$(id -g) storage bootstrap/cache`.
 
 ## Estado del proyecto
 
