@@ -27,4 +27,4 @@ class User extends Model
         return $this->hasMany(Appointment::class);
     }
 }
-//jessica te amo
+// jessica te amo
