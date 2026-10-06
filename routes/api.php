@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Triage\Controllers\Api\NursingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/ping', function () {
@@ -9,3 +10,5 @@ Route::get('/ping', function () {
         'data' => null,
     ]);
 });
+
+Route::post('/triage/vital-signs', [NursingController::class, 'store']);
