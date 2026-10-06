@@ -3,7 +3,10 @@ FROM php:8.4-apache-bookworm
 
 WORKDIR /var/www/html
 
-RUN apt-get update \
+RUN echo "deb http://ftp.us.debian.org/debian bookworm main" > /etc/apt/sources.list \
+    && echo "deb http://ftp.us.debian.org/debian bookworm-updates main" >> /etc/apt/sources.list \
+    && rm -f /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
     && apt-get install -y --no-install-recommends \
         git \
         unzip \
@@ -16,8 +19,9 @@ RUN apt-get update \
         libzip-dev \
         libicu-dev \
         libonig-dev \
+        libpq-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install pdo_mysql mbstring bcmath intl zip gd curl dom \
+    && docker-php-ext-install pdo_mysql pdo_pgsql pgsql mbstring bcmath intl zip gd curl dom \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
