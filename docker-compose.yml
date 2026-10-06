@@ -56,9 +56,30 @@ services:
     networks:
       - medtriaje
 
+  pgsql:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: medtriaje_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgsql-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -d medtriaje_db -U root"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - medtriaje
+
 volumes:
   db_data:
   vendor_data:
+  pgsql-data:
 
 networks:
   medtriaje:
