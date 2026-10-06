@@ -79,6 +79,16 @@ Ambas responden de la misma manera y comparten la misma sesión en base de datos
 - `database/`: Migraciones y seeders para estructurar MySQL y poblar datos ficticios.
 - `docker/`: Scripts de inicialización como el `entrypoint.sh` (gestión de permisos de `storage` y espera de base de datos) y la inicialización de MySQL (`mysql-init/`).
 
+## Autenticación de Staff y roles (desarrollo)
+
+Para la autenticación de la API mediante Laravel Sanctum, se utiliza el modelo `Staff` (tabla `staff`) con los siguientes roles definidos en `StaffRole`:
+
+| Rol (`role`) | Email de desarrollo | Contraseña | Detalle |
+| :--- | :--- | :--- | :--- |
+| `nurse` | `enfermera@medtriaje.test` | `password123` | Personal de enfermería (triaje y signos vitales) |
+| `reception` | `recepcion@medtriaje.test` | `password123` | Personal de recepción (gestión de citas) |
+| `doctor` | `medico@medtriaje.test` | `password123` | Médico (vinculado a un registro en `triage_doctors`) |
+
 ## Problemas comunes
 
 - **Puerto 8080 u 8081 ocupado:** Cambia las variables `APP_PORT` o `APP2_PORT` en tu archivo `.env`.

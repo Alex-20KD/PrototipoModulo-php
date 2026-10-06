@@ -69,5 +69,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call(Cie10Seeder::class);
         $this->call(MedicationSeeder::class);
+        $this->call(StaffSeeder::class);
     }
 }
