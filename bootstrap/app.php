@@ -22,8 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Decide cuándo renderizar JSON: prefijo api/* O cabecera Accept: application/json
-        $isApiRequest = fn (Request $request): bool =>
-            $request->is('api/*') || $request->wantsJson();
+        $isApiRequest = fn (Request $request): bool => $request->is('api/*') || $request->wantsJson();
 
         $exceptions->shouldRenderJsonWhen($isApiRequest);
 
@@ -31,9 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (ModelNotFoundException $e, Request $request) use ($isApiRequest) {
             if ($isApiRequest($request)) {
                 return response()->json([
-                    'status'  => false,
+                    'status' => false,
                     'message' => 'Recurso no encontrado',
-                    'data'    => null,
+                    'data' => null,
                 ], 404);
             }
         });
@@ -42,9 +41,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (NotFoundHttpException $e, Request $request) use ($isApiRequest) {
             if ($isApiRequest($request)) {
                 return response()->json([
-                    'status'  => false,
+                    'status' => false,
                     'message' => 'Ruta no encontrada',
-                    'data'    => null,
+                    'data' => null,
                 ], 404);
             }
         });
@@ -53,9 +52,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (ValidationException $e, Request $request) use ($isApiRequest) {
             if ($isApiRequest($request)) {
                 return response()->json([
-                    'status'  => false,
+                    'status' => false,
                     'message' => 'Los datos proporcionados no son válidos',
-                    'data'    => $e->errors(),
+                    'data' => $e->errors(),
                 ], 422);
             }
         });
@@ -64,9 +63,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (AuthenticationException $e, Request $request) use ($isApiRequest) {
             if ($isApiRequest($request)) {
                 return response()->json([
-                    'status'  => false,
+                    'status' => false,
                     'message' => 'No autenticado',
-                    'data'    => null,
+                    'data' => null,
                 ], 401);
             }
         });
