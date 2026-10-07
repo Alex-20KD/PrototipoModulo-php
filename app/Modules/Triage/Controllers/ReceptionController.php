@@ -5,6 +5,7 @@ namespace App\Modules\Triage\Controllers;
 use App\Modules\Triage\Models\Appointment;
 use App\Modules\Triage\Models\VitalSign;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
@@ -59,28 +60,42 @@ class ReceptionController extends Controller
             ]);
         }
 
-        // Step 1: Find the latest pending vital signs for this patient
-        $pendingVitalSign = VitalSign::where('user_id', $validated['user_id'])
-            ->where('status', 'pending')
-            ->latest()
-            ->first();
+        try {
+            $appointment = DB::transaction(function () use ($validated, $appointmentDate) {
+                // Find the latest pending vital signs for this patient
+                $pendingVitalSign = VitalSign::where('user_id', $validated['user_id'])
+                    ->where('status', 'pending')
+                    ->latest()
+                    ->first();
 
-        // Step 2: Create the appointment with vital_signs_id (or null if none)
-        $appointment = Appointment::create([
-            'user_id' => $validated['user_id'],
-            'doctor_id' => $validated['doctor_id'],
-            'vital_signs_id' => $pendingVitalSign?->id,
-            'appointment_date' => $appointmentDate,
-            'status' => 'scheduled',
-        ]);
+                // Create the appointment with vital_signs_id (or null if none)
+                $appointment = Appointment::create([
+                    'user_id' => $validated['user_id'],
+                    'doctor_id' => $validated['doctor_id'],
+                    'vital_signs_id' => $pendingVitalSign?->id,
+                    'appointment_date' => $appointmentDate,
+                    'status' => 'scheduled',
+                ]);
 
-        // Step 3: Update the vital sign record status to 'assigned'
-        if ($pendingVitalSign) {
-            $pendingVitalSign->update(['status' => 'assigned']);
+                // Update the vital sign record status to 'assigned'
+                if ($pendingVitalSign) {
+                    $pendingVitalSign->update(['status' => 'assigned']);
+                }
+
+                return $appointment;
+            });
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23000') {
+                return back()->withInput()->withErrors([
+                    'appointment_time' => 'El cupo seleccionado ya no está disponible. Intente con otro horario.',
+                ]);
+            }
+
+            throw $e;
         }
 
         $message = '¡Cita creada exitosamente!';
-        if ($pendingVitalSign) {
+        if ($appointment->vital_signs_id) {
             $message .= ' El triaje pendiente fue vinculado automáticamente.';
         }
 

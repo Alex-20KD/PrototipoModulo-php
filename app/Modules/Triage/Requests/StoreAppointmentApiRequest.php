@@ -2,10 +2,7 @@
 
 namespace App\Modules\Triage\Requests;
 
-use App\Modules\Triage\Models\Appointment;
-use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 
 class StoreAppointmentApiRequest extends FormRequest
 {
@@ -33,32 +30,5 @@ class StoreAppointmentApiRequest extends FormRequest
             'appointment_time.required' => 'La hora de la cita es obligatoria.',
             'appointment_time.in' => 'La hora de la cita debe ser uno de los horarios permitidos (ej. 09:00, 09:30).',
         ];
-    }
-
-    public function withValidator(Validator $validator): void
-    {
-        $validator->after(function ($validator) {
-            $userId = $this->input('user_id');
-            $doctorId = $this->input('doctor_id');
-            $appointmentTime = $this->input('appointment_time');
-
-            if (! $userId || ! $doctorId || ! $appointmentTime) {
-                return;
-            }
-
-            $appointmentDate = Carbon::today()->format('Y-m-d').' '.$appointmentTime.':00';
-
-            if (Appointment::where('user_id', $userId)
-                ->whereDate('appointment_date', Carbon::today())
-                ->exists()) {
-                $validator->errors()->add('appointment_time', 'El paciente ya tiene una cita agendada para hoy.');
-            }
-
-            if (Appointment::where('doctor_id', $doctorId)
-                ->where('appointment_date', $appointmentDate)
-                ->exists()) {
-                $validator->errors()->add('appointment_time', 'El médico ya tiene una cita asignada en ese horario.');
-            }
-        });
     }
 }

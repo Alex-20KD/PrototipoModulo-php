@@ -33,6 +33,11 @@ trait ApiResponseTrait
         ], $code);
     }
 
+    public function conflict(string $message = 'Conflict', mixed $data = null): JsonResponse
+    {
+        return $this->error($message, 409, $data);
+    }
+
     public function notFound(string $message = 'Not Found'): JsonResponse
     {
         return $this->error($message, 404);
