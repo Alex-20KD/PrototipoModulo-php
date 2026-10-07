@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CheckRole;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -7,6 +8,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -18,7 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'role' => CheckRole::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Decide cuándo renderizar JSON: prefijo api/* O cabecera Accept: application/json
@@ -67,6 +71,17 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => 'No autenticado',
                     'data' => null,
                 ], 401);
+            }
+        });
+
+        // 403 – no autorizado
+        $exceptions->render(function (AccessDeniedHttpException $e, Request $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No tiene permisos para acceder a este recurso',
+                    'data' => null,
+                ], 403);
             }
         });
     })->create();
