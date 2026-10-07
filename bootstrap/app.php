@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CheckRole;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -75,11 +76,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // 403 – no autorizado
-        $exceptions->render(function (AccessDeniedHttpException $e, Request $request) use ($isApiRequest) {
+        $exceptions->render(function (AccessDeniedHttpException|AuthorizationException $e, Request $request) use ($isApiRequest) {
             if ($isApiRequest($request)) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'No tiene permisos para acceder a este recurso',
+                    'message' => $e->getMessage() ?: 'No tiene permisos para acceder a este recurso',
                     'data' => null,
                 ], 403);
             }
