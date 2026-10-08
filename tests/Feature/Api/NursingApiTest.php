@@ -2,13 +2,30 @@
 
 namespace Tests\Feature\Api;
 
+use App\Enums\StaffRole;
+use App\Models\Staff;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class NursingApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $nurseStaff = Staff::create([
+            'name' => 'Enfermera Test',
+            'email' => 'nurse_test@example.com',
+            'password' => 'secret',
+            'role' => StaffRole::Nurse,
+        ]);
+
+        Sanctum::actingAs($nurseStaff);
+    }
 
     public function test_can_create_vital_signs(): void
     {

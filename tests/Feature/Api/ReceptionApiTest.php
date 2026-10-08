@@ -2,17 +2,34 @@
 
 namespace Tests\Feature\Api;
 
+use App\Enums\StaffRole;
+use App\Models\Staff;
 use App\Models\User;
 use App\Modules\Triage\Models\Appointment;
 use App\Modules\Triage\Models\Doctor;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ReceptionApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $receptionStaff = Staff::create([
+            'name' => 'Recepcionista Test',
+            'email' => 'reception_test@example.com',
+            'password' => 'secret',
+            'role' => StaffRole::Reception,
+        ]);
+
+        Sanctum::actingAs($receptionStaff);
+    }
 
     public function test_can_list_appointments(): void
     {
