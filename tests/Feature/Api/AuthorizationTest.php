@@ -9,6 +9,7 @@ use App\Modules\Triage\Models\Appointment;
 use App\Modules\Triage\Models\Doctor;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AuthorizationTest extends TestCase
@@ -102,6 +103,8 @@ class AuthorizationTest extends TestCase
 
     public function test_doctor_viewing_own_appointment_pdf_returns_200()
     {
+        Storage::fake('pc5');
+
         $doctor = Doctor::create(['nombres' => 'Dr', 'apellidos' => 'House', 'especialidad' => 'General']);
 
         $staff = Staff::create([
@@ -118,14 +121,14 @@ class AuthorizationTest extends TestCase
             'user_id' => $user->id,
             'doctor_id' => $doctor->id,
             'appointment_date' => Carbon::now(),
-            'status' => 'pending',
+            'status' => 'completed',
         ]);
 
         $response = $this->actingAs($staff, 'sanctum')
-            ->getJson('/api/doctor/pdf/'.$appointment->id);
+            ->get('/api/doctor/pdf/'.$appointment->id);
 
-        $response->assertStatus(200)
-            ->assertJsonPath('status', true);
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/pdf');
     }
 
     public function test_history_endpoint_protected_by_role()
