@@ -61,7 +61,8 @@ services:
     profiles: ["sftp"]
     ports:
       - "${SFTP_PORT:-2222}:22"
-    command: ${SFTP_USERNAME:-medtriaje}:${SFTP_PASSWORD:-secret}:1001:1001:upload
+
+    command: ${SFTP_USERNAME:-medtriaje}:${SFTP_PASSWORD:-secret}:1001
     volumes:
       - sftp_data:/home/${SFTP_USERNAME:-medtriaje}/upload
     networks:
