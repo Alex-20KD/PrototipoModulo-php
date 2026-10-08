@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\StorageUnavailableException;
+use App\Http\Controllers\HealthController;
 use App\Http\Middleware\CheckRole;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -10,6 +11,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -21,6 +23,12 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // /health queda fuera de los grupos web y api: sin sesión (la BD no
+        // debe sondearse con escrituras de sesión) y sin autenticación, para
+        // que el balanceador (PC1) pueda consultarlo.
+        then: function (): void {
+            Route::get('/health', [HealthController::class, 'index'])->name('health');
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
@@ -30,6 +38,24 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         // Decide cuándo renderizar JSON: prefijo api/* O cabecera Accept: application/json
         $isApiRequest = fn (Request $request): bool => $request->is('api/*') || $request->wantsJson();
+
+        // Distingue una base de datos caída de un error real de SQL: solo lo
+        // primero debe devolver 503 al balanceador, un bug de código sigue en 500.
+        $isDatabaseConnectionFailure = function (PDOException $e): bool {
+            $sqlState = (string) ($e->errorInfo[0] ?? $e->getCode());
+            $driverCode = (int) ($e->errorInfo[1] ?? 0);
+            $message = $e->getMessage();
+
+            return str_starts_with($sqlState, '08')
+                || in_array($driverCode, [2002, 2003, 2005, 2006, 1040, 2013], true)
+                || str_contains($message, 'Connection refused')
+                || str_contains($message, 'server has gone away')
+                || str_contains($message, 'Lost connection')
+                || str_contains($message, 'Too many connections')
+                || str_contains($message, 'Unknown MySQL server host')
+                || str_contains($message, 'getaddrinfo')
+                || str_contains($message, 'php_network_getaddresses');
+        };
 
         $exceptions->shouldRenderJsonWhen($isApiRequest);
 
@@ -98,5 +124,20 @@ return Application::configure(basePath: dirname(__DIR__))
                     'data' => null,
                 ], 503);
             }
+        });
+
+        // 503 - base de datos caída (readiness) con el envoltorio uniforme
+        $exceptions->render(function (PDOException $e, Request $request) use ($isApiRequest, $isDatabaseConnectionFailure) {
+            if (! $isDatabaseConnectionFailure($e) || ! $isApiRequest($request)) {
+                return null;
+            }
+
+            Log::error('Database unavailable: '.$e->getMessage());
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Servicio no disponible temporalmente',
+                'data' => null,
+            ], 503);
         });
     })->create();
