@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\StorageUnavailableException;
 use App\Http\Middleware\CheckRole;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -8,6 +9,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -83,6 +85,18 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => $e->getMessage() ?: 'No tiene permisos para acceder a este recurso',
                     'data' => null,
                 ], 403);
+            }
+        });
+
+        // 503 - almacenamiento no disponible (SFTP caído)
+        $exceptions->render(function (StorageUnavailableException $e, Request $request) use ($isApiRequest) {
+            Log::error('Storage Unavailable: '.$e->getMessage());
+            if ($isApiRequest($request)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Servicio de almacenamiento no disponible temporalmente. Intente más tarde.',
+                    'data' => null,
+                ], 503);
             }
         });
     })->create();

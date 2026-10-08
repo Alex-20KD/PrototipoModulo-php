@@ -82,6 +82,8 @@ docker compose --profile sftp up -d sftp
 
 Las credenciales por defecto están configuradas en tu `.env.example` o `.env`.
 
+> **Nota de Arquitectura:** El backend maneja de forma asíncrona y resiliente la conexión al SFTP. Si el contenedor de SFTP se encuentra inactivo, los endpoints relacionados con la descarga del PDF devolverán un error `503 Service Unavailable` controlado en formato JSON, sin causar caídas generales en el sistema ni exponer trazas de error al cliente.
+
 ## Estructura de carpetas relevante
 
 - `app/Modules/Triage/`: Contiene toda la lógica modular (Controladores, Modelos).

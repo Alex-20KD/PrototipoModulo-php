@@ -76,3 +76,26 @@ La API implementa un modelo de autorización basado en roles (`StaffRole`):
     "data": null
 }
 ```
+- **503 Service Unavailable**: Falla en la conexión con servicios externos de almacenamiento (ej. servidor SFTP PC5 caído).
+```json
+{
+    "status": false,
+    "message": "Servicio de almacenamiento no disponible temporalmente. Intente más tarde.",
+    "data": null
+}
+```
+
+## Descarga de Reportes (SFTP PC5)
+
+### GET `/api/doctor/pdf/{appointment}`
+Descarga el reporte clínico (Formulario 002) en PDF correspondiente a la cita médica.
+- **Headers**: `Authorization: Bearer {token}`
+- **Comportamiento**:
+  - El PDF se entrega por **streaming directo** desde el backend hacia el cliente. El servidor externo (PC5) nunca se expone.
+  - Si el reporte no fue generado o enviado por una caída previa del SFTP, el backend intentará regenerarlo y subirlo en tiempo real antes de servirlo.
+- **Respuestas**:
+  - `200 OK`: Descarga en formato `application/pdf`.
+  - `400 Bad Request`: Si la cita aún no tiene el estado `completed`.
+  - `401 Unauthorized`: Sin token.
+  - `403 Forbidden`: El médico intenta descargar una cita que pertenece a otro profesional.
+  - `503 Service Unavailable`: El servidor SFTP (PC5) está desconectado temporalmente.
