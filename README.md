@@ -72,6 +72,16 @@ El `docker-compose.yml` levanta dos instancias idénticas del backend apuntando 
 - **`app2`**: Disponible en el puerto `8081`.
 Ambas responden de la misma manera y comparten la misma sesión en base de datos.
 
+## Servidor SFTP para PDF
+
+Para probar la subida de reportes clínicos en formato PDF al servidor SFTP (PC5), debes levantar el contenedor de SFTP. Está configurado con el perfil `sftp`, por lo que se debe iniciar de manera explícita:
+
+```bash
+docker compose --profile sftp up -d sftp
+```
+
+Las credenciales por defecto están configuradas en tu `.env.example` o `.env`.
+
 ## Estructura de carpetas relevante
 
 - `app/Modules/Triage/`: Contiene toda la lógica modular (Controladores, Modelos).

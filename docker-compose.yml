@@ -56,9 +56,21 @@ services:
     networks:
       - medtriaje
 
+  sftp:
+    image: atmoz/sftp
+    profiles: ["sftp"]
+    ports:
+      - "${SFTP_PORT:-2222}:22"
+    command: ${SFTP_USERNAME:-medtriaje}:${SFTP_PASSWORD:-secret}:1001
+    volumes:
+      - sftp_data:/home/${SFTP_USERNAME:-medtriaje}/upload
+    networks:
+      - medtriaje
+
 volumes:
   db_data:
   vendor_data:
+  sftp_data:
 
 networks:
   medtriaje:
