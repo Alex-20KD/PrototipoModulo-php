@@ -57,6 +57,7 @@ La API implementa un modelo de autorización basado en roles (`StaffRole`):
 |---|---|---|
 | `GET /api/ping` | Público | No requiere autenticación. |
 | `GET /up` | Público | No requiere autenticación. (Healthcheck) |
+| `GET /health` | Público | No requiere autenticación. (Readiness) |
 | `POST /api/auth/login` | Público | No requiere autenticación. |
 | `POST /api/triage/vital-signs` | `nurse` | Solo personal de enfermería. |
 | `GET /api/reception/appointments` | `reception` | Solo personal de recepción. |
@@ -82,6 +83,51 @@ La API implementa un modelo de autorización basado en roles (`StaffRole`):
     "status": false,
     "message": "Servicio de almacenamiento no disponible temporalmente. Intente más tarde.",
     "data": null
+}
+```
+- **503 Service Unavailable**: La base de datos no responde (solo fallos de conexión; un error de SQL sigue devolviendo `500`).
+```json
+{
+    "status": false,
+    "message": "Servicio no disponible temporalmente",
+    "data": null
+}
+```
+
+## Health / Readiness
+
+### GET `/health`
+Endpoint de **readiness** del balanceador (PC1). Comprueba la disponibilidad real de la base de datos y del servidor SFTP (PC5). Es público, no usa sesión y no debe cachearse (`Cache-Control: no-store`).
+
+**Comportamiento**:
+- **BD**: ejecuta un `SELECT 1` real contra la conexión por defecto.
+- **PC5**: verifica conectividad y credenciales del servidor SFTP con un `stat` sobre `reports`, reutilizando `config/filesystems.php`. No realiza escrituras reales ni comprueba el permiso de escritura. Si `SFTP_HOST` no está configurado, reporta `disabled` sin marcar la instancia como degradada.
+
+**Respuestas**:
+- `200 OK`: Todos los componentes críticos están operativos (`database` y `pc5` en `up`, o `pc5` en `disabled`).
+```json
+{
+    "status": true,
+    "message": "Servicio operativo",
+    "data": {
+        "components": {
+            "database": "up",
+            "pc5": "up"
+        }
+    }
+}
+```
+- `503 Service Unavailable`: Al menos un componente crítico está `down`.
+```json
+{
+    "status": false,
+    "message": "Algunos componentes no están disponibles",
+    "data": {
+        "components": {
+            "database": "up",
+            "pc5": "down"
+        }
+    }
 }
 ```
 
