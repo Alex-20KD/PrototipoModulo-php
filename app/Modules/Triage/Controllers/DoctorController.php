@@ -57,9 +57,7 @@ class DoctorController extends Controller
     public function store(Request $request, Appointment $appointment)
     {
         if ($appointment->status === 'completed') {
-            return redirect()
-                ->route('triage.doctor.index')
-                ->withErrors(['appointment' => 'Esta cita ya fue completada y no puede modificarse.']);
+            abort(409, 'Esta cita ya fue completada y no puede modificarse.');
         }
 
         // Custom rule: reject first-person phrasing (MSP Ecuador clinical standard)
@@ -128,8 +126,19 @@ class DoctorController extends Controller
         $dmActive = $request->boolean('ant_dm');
         $chronicList = $validated['ant_chronic'] ?? [];
 
-        DB::transaction(function () use ($appointment, $validated, $request, $primaryCie10, $primaryDiagnosis, $htaActive, $dmActive, $chronicList) {
-            $appointment->update([
+        $conflict = false;
+
+        DB::transaction(function () use ($appointment, $validated, $request, $primaryCie10, $primaryDiagnosis, $htaActive, $dmActive, $chronicList, &$conflict) {
+            /** @var Appointment $locked */
+            $locked = Appointment::whereKey($appointment->id)->lockForUpdate()->firstOrFail();
+
+            if ($locked->status === 'completed') {
+                $conflict = true;
+
+                return;
+            }
+
+            $locked->update([
                 'anamnesis' => $validated['anamnesis'],
                 'physical_exam' => $validated['physical_exam'] ?? null,
                 'cie10_code' => $primaryCie10->code,
@@ -149,14 +158,14 @@ class DoctorController extends Controller
                 'ant_observations' => $validated['ant_observations'] ?? null,
             ]);
 
-            $appointment->diagnoses()->delete();
-            $appointment->prescriptions()->delete();
+            $locked->diagnoses()->delete();
+            $locked->prescriptions()->delete();
 
             foreach ($validated['diagnoses'] as $i => $diag) {
                 $cie10 = Cie10::where('code', $diag['cie10_code'])->first();
 
                 AppointmentDiagnosis::create([
-                    'appointment_id' => $appointment->id,
+                    'appointment_id' => $locked->id,
                     'cie10_code' => $diag['cie10_code'],
                     'cie10_description' => $cie10?->description ?? '',
                     'diagnosis_type' => $diag['diagnosis_type'],
@@ -167,7 +176,7 @@ class DoctorController extends Controller
             if (! empty($validated['prescriptions'])) {
                 foreach ($validated['prescriptions'] as $rx) {
                     Prescription::create([
-                        'appointment_id' => $appointment->id,
+                        'appointment_id' => $locked->id,
                         'generic_name' => $rx['generic_name'],
                         'concentration' => $rx['concentration'],
                         'form' => $rx['form'],
@@ -177,6 +186,10 @@ class DoctorController extends Controller
                 }
             }
         });
+
+        if ($conflict) {
+            abort(409, 'Esta cita ya fue completada y no puede modificarse.');
+        }
 
         return redirect()->route('triage.doctor.index')
             ->with('success', '¡Consulta guardada exitosamente! La cita ha sido finalizada.');
