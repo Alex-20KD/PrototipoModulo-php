@@ -39,6 +39,17 @@ class HealthController extends Controller
      */
     protected function checkDatabase(): string
     {
+        $host = config('database.connections.mysql.host', '127.0.0.1');
+        $port = (int) config('database.connections.mysql.port', 3306);
+
+        $socket = @fsockopen($host, $port, $errno, $errstr, 1.5);
+        if (! $socket) {
+            Log::warning("Health check: MySQL inaccesible en {$host}:{$port} ({$errstr})");
+
+            return 'down';
+        }
+        fclose($socket);
+
         try {
             DB::select('select 1 as ok');
 
@@ -57,11 +68,23 @@ class HealthController extends Controller
      */
     protected function checkStorage(): string
     {
-        if (blank(config('filesystems.disks.pc5.host'))) {
+        $host = config('filesystems.disks.pc5.host');
+        $port = (int) config('filesystems.disks.pc5.port', 22);
+
+        if (blank($host)) {
             return 'disabled';
         }
 
         try {
+            // Sondeo rápido de socket (1.5s máx) para evitar que la petición se congele 19s
+            $socket = @fsockopen($host, $port, $errno, $errstr, 1.5);
+            if (! $socket) {
+                Log::warning("Health check: almacenamiento PC5 no alcanzable en {$host}:{$port} ({$errstr})");
+
+                return 'down';
+            }
+            fclose($socket);
+
             Storage::disk('pc5')->exists('reports');
 
             return 'up';
