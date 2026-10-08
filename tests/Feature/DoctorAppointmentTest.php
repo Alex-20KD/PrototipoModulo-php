@@ -11,12 +11,20 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use League\Flysystem\UnableToWriteFile;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class DoctorAppointmentTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake('pc5');
+    }
 
     private function appointmentPayload(array $overrides = []): array
     {
@@ -141,5 +149,47 @@ class DoctorAppointmentTest extends TestCase
             'id' => $appointment->id,
             'status' => 'completed',
         ]);
+    }
+
+    public function test_successful_completion_generates_and_uploads_pdf(): void
+    {
+        [$appointment] = $this->makeScheduledAppointment();
+
+        $response = $this->post(
+            route('triage.doctor.attend.store', $appointment),
+            $this->appointmentPayload()
+        );
+
+        $response->assertStatus(302);
+
+        $appointment->refresh();
+        $this->assertNotNull($appointment->report_path);
+
+        Storage::disk('pc5')->assertExists($appointment->report_path);
+    }
+
+    public function test_completion_succeeds_even_if_sftp_fails(): void
+    {
+        // Mock the disk to throw UnableToWriteFile to simulate SFTP failure
+        Storage::shouldReceive('disk')
+            ->with('pc5')
+            ->andThrow(new UnableToWriteFile('Simulated failure'));
+
+        [$appointment] = $this->makeScheduledAppointment();
+
+        $response = $this->post(
+            route('triage.doctor.attend.store', $appointment),
+            $this->appointmentPayload()
+        );
+
+        // The appointment should be completed without a 500 error
+        $response->assertStatus(302);
+        $response->assertSessionHas('success');
+
+        $appointment->refresh();
+        $this->assertEquals('completed', $appointment->status);
+
+        // report_path should be null because it failed
+        $this->assertNull($appointment->report_path);
     }
 }

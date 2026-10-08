@@ -2,16 +2,19 @@
 
 namespace App\Modules\Triage\Controllers;
 
+use App\Exceptions\StorageUnavailableException;
 use App\Models\User;
 use App\Modules\Triage\Models\Appointment;
 use App\Modules\Triage\Models\AppointmentDiagnosis;
 use App\Modules\Triage\Models\Cie10;
 use App\Modules\Triage\Models\Prescription;
+use App\Services\ClinicalReportStorage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class DoctorController extends Controller
@@ -189,6 +192,22 @@ class DoctorController extends Controller
 
         if ($conflict) {
             abort(409, 'Esta cita ya fue completada y no puede modificarse.');
+        }
+
+        try {
+            $appointment->refresh()->loadMissing(['user', 'doctor', 'vitalSigns', 'prescriptions', 'diagnoses']);
+            $pdfContent = Pdf::loadView('triage.pdf.formulario002', compact('appointment'))->output();
+
+            $storage = app(ClinicalReportStorage::class);
+            $path = $storage->path($appointment);
+
+            $storage->put($path, $pdfContent);
+
+            $appointment->update(['report_path' => $path]);
+        } catch (StorageUnavailableException $e) {
+            Log::error("SFTP upload failed for appointment {$appointment->id}: ".$e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error("PDF generation or SFTP upload failed for appointment {$appointment->id}: ".$e->getMessage());
         }
 
         return redirect()->route('triage.doctor.index')

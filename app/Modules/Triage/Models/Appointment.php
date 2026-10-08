@@ -41,6 +41,7 @@ class Appointment extends Model
         'ant_chronic',
         'ant_chronic_other',
         'ant_observations',
+        'report_path',
     ];
 
     protected $casts = [
