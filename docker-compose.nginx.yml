@@ -1,0 +1,15 @@
+name: medtriaje-proxy
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: proxy_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./proxy/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    environment:
+      - NGINX_ENVSUBST_FILTER=^BACKEND
+      - BACKEND1=${BACKEND1:-192.168.10.13:8080}
+      - BACKEND2=${BACKEND2:-192.168.10.13:8081}
+

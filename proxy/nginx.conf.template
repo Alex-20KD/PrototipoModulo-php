@@ -1,0 +1,36 @@
+map $http_x_request_id $req_id {
+    default   $http_x_request_id;
+    ""        $request_id;
+}
+
+upstream backend {
+    server ${BACKEND1} max_fails=2 fail_timeout=10s;
+    server ${BACKEND2} max_fails=2 fail_timeout=10s;
+}
+
+server {
+    listen 80;
+
+    location = /lb-health {
+        default_type text/plain;
+        return 200 'OK';
+    }
+
+    location / {
+        proxy_pass http://backend;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Request-ID $req_id;
+
+        add_header X-Request-ID $req_id always;
+
+        proxy_connect_timeout 2s;
+        proxy_send_timeout 15s;
+        proxy_read_timeout 15s;
+
+        proxy_next_upstream error timeout http_502 http_503 http_504;
+    }
+}
