@@ -72,10 +72,12 @@ El `docker-compose.yml` levanta dos instancias idénticas del backend apuntando 
 - **`app2`**: Disponible en el puerto `8081`.
 Ambas responden de la misma manera y comparten la misma sesión en base de datos.
 
-## Proxy / Balanceador de carga (NGINX)
+## Proxy NGINX (PC1)
 
 Para unificar las dos instancias y distribuir el tráfico, se ha configurado un proxy inverso usando NGINX en el puerto `80`. 
 Este proxy es portable y su configuración lee las direcciones de los backends desde el archivo `.env`.
+
+> **Nota de aislamiento (`name: medtriaje-proxy`):** El proxy utiliza un nombre de proyecto aislado para evitar advertencias de contenedores huérfanos y prevenir que comandos como `--remove-orphans` afecten los contenedores del backend. Por este motivo, el proxy se maneja siempre indicando su archivo: `-f docker-compose.nginx.yml`.
 
 **Pasos para levantarlo (desde PC1):**
 1. Asegúrate de tener los backends iniciados (o al menos definidos en `.env` mediante `BACKEND1` y `BACKEND2`).
@@ -87,6 +89,14 @@ Este proxy es portable y su configuración lee las direcciones de los backends d
 4. Para detenerlo: `docker compose -f docker-compose.nginx.yml down`
 
 El proxy propagará automáticamente la cabecera `X-Request-ID` en las peticiones.
+
+**Pruebas locales en una sola laptop:**
+Desde dentro del contenedor de NGINX, `localhost` no resuelve al host. Para probar en una sola máquina, `BACKEND1` y `BACKEND2` deben apuntar a la IP del gateway de la red de Docker del backend (obtenida con `docker network inspect prototipomodulo-php_medtriaje | grep Gateway`, típicamente `172.18.0.1`).
+Ejemplo en Fish:
+```fish
+env BACKEND1=172.18.0.1:8080 BACKEND2=172.18.0.1:8081 docker compose -f docker-compose.nginx.yml up -d
+```
+
 
 
 ## Servidor SFTP para PDF
