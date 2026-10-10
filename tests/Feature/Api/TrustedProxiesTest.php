@@ -7,6 +7,7 @@ use App\Models\Staff;
 use App\Support\SecurityConfig;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
@@ -17,16 +18,19 @@ class TrustedProxiesTest extends TestCase
 {
     use RefreshDatabase;
 
+    private array $originalEnv = [];
+
     protected function setUp(): void
     {
+        $this->backupEnv('TRUSTED_PROXIES');
+        $this->backupEnv('CORS_ALLOWED_ORIGINS');
+
         $testName = $this->name();
 
         if (str_contains($testName, 'ignores_forwarded_for_without_trusted_proxies_configured')) {
-            $_ENV['TRUSTED_PROXIES'] = '';
-            putenv('TRUSTED_PROXIES=');
+            $this->setEnv('TRUSTED_PROXIES', '');
         } else {
-            $_ENV['TRUSTED_PROXIES'] = '10.0.0.1';
-            putenv('TRUSTED_PROXIES=10.0.0.1');
+            $this->setEnv('TRUSTED_PROXIES', '10.0.0.1');
         }
 
         parent::setUp();
@@ -38,9 +42,64 @@ class TrustedProxiesTest extends TestCase
 
     protected function tearDown(): void
     {
-        putenv('TRUSTED_PROXIES');
-        unset($_ENV['TRUSTED_PROXIES'], $_SERVER['TRUSTED_PROXIES']);
+        $this->restoreEnv('TRUSTED_PROXIES');
+        $this->restoreEnv('CORS_ALLOWED_ORIGINS');
+
         parent::tearDown();
+    }
+
+    private function backupEnv(string $key): void
+    {
+        $this->originalEnv[$key] = [
+            'putenv' => getenv($key),
+            'env' => array_key_exists($key, $_ENV) ? $_ENV[$key] : false,
+            'server' => array_key_exists($key, $_SERVER) ? $_SERVER[$key] : false,
+        ];
+    }
+
+    private function setEnv(string $key, string $value): void
+    {
+        putenv("{$key}={$value}");
+        $_ENV[$key] = $value;
+        $_SERVER[$key] = $value;
+
+        if (class_exists(Env::class)) {
+            \Closure::bind(function () {
+                Env::$repository = null;
+            }, null, Env::class)();
+        }
+    }
+
+    private function restoreEnv(string $key): void
+    {
+        $backup = $this->originalEnv[$key] ?? null;
+        if (! $backup) {
+            return;
+        }
+
+        if ($backup['putenv'] === false) {
+            putenv($key);
+        } else {
+            putenv("{$key}={$backup['putenv']}");
+        }
+
+        if ($backup['env'] === false) {
+            unset($_ENV[$key]);
+        } else {
+            $_ENV[$key] = $backup['env'];
+        }
+
+        if ($backup['server'] === false) {
+            unset($_SERVER[$key]);
+        } else {
+            $_SERVER[$key] = $backup['server'];
+        }
+
+        if (class_exists(Env::class)) {
+            \Closure::bind(function () {
+                Env::$repository = null;
+            }, null, Env::class)();
+        }
     }
 
     public function test_trusted_proxies_rejects_wildcard(): void
