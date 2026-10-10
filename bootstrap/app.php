@@ -3,6 +3,7 @@
 use App\Exceptions\StorageUnavailableException;
 use App\Http\Controllers\HealthController;
 use App\Http\Middleware\CheckRole;
+use App\Support\SecurityConfig;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -31,6 +32,14 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(
+            at: SecurityConfig::getTrustedProxies(),
+            headers: Request::HEADER_X_FORWARDED_FOR |
+                Request::HEADER_X_FORWARDED_HOST |
+                Request::HEADER_X_FORWARDED_PORT |
+                Request::HEADER_X_FORWARDED_PROTO
+        );
+
         $middleware->alias([
             'role' => CheckRole::class,
         ]);
