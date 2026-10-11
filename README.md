@@ -72,6 +72,34 @@ El `docker-compose.yml` levanta dos instancias idénticas del backend apuntando 
 - **`app2`**: Disponible en el puerto `8081`.
 Ambas responden de la misma manera y comparten la misma sesión en base de datos.
 
+### Visualización de logs e identificación de peticiones
+
+Cada petición atendida por el backend propaga o genera un identificador único en la cabecera `X-Request-ID` y etiqueta la réplica responsable mediante `X-Instance-ID` (ambas devueltas en las cabeceras de respuesta e incluidas en el contexto de cada log).
+
+Los logs se transmiten hacia `stderr` (visible en Docker Compose) y su severidad se configura mediante `LOG_LEVEL` en el `.env` (por defecto `debug`).
+
+Para consultar los logs de cada instancia:
+
+- **Ver logs de ambas instancias en tiempo real (seguimiento en vivo):**
+  ```bash
+  docker compose logs -f app app2
+  ```
+
+- **Ver logs únicamente de la primera instancia (`app`):**
+  ```bash
+  docker compose logs -f app
+  ```
+
+- **Ver logs únicamente de la segunda instancia (`app2`):**
+  ```bash
+  docker compose logs -f app2
+  ```
+
+- **Ver las últimas 100 líneas con marcas de tiempo (timestamps):**
+  ```bash
+  docker compose logs --tail=100 -t app app2
+  ```
+
 ## Proxy NGINX (PC1)
 
 Para unificar las dos instancias y distribuir el tráfico, se ha configurado un proxy inverso usando NGINX en el puerto `80`. 

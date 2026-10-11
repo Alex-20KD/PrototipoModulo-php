@@ -24,6 +24,8 @@ services:
       context: .
       dockerfile: Dockerfile
     image: medtriaje-app:dev
+    environment:
+      INSTANCE_ID: ${INSTANCE_ID:-app}
     ports:
       - "${APP_PORT:-8080}:80"
 
@@ -32,6 +34,7 @@ services:
     image: medtriaje-app:dev
     environment:
       RUN_MIGRATIONS: "false"
+      INSTANCE_ID: ${INSTANCE2_ID:-app2}
     ports:
       - "${APP2_PORT:-8081}:80"
 

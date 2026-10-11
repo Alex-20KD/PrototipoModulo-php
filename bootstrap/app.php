@@ -2,6 +2,7 @@
 
 use App\Exceptions\StorageUnavailableException;
 use App\Http\Controllers\HealthController;
+use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\CheckRole;
 use App\Support\SecurityConfig;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -32,6 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(AssignRequestId::class);
+
         $middleware->trustProxies(
             at: SecurityConfig::getTrustedProxies(),
             headers: Request::HEADER_X_FORWARDED_FOR |
