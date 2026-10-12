@@ -97,6 +97,32 @@ Ejemplo en Fish:
 env BACKEND1=172.18.0.1:8080 BACKEND2=172.18.0.1:8081 docker compose -f docker-compose.nginx.yml up -d
 ```
 
+### Probar el proxy (Script de pruebas de fallo)
+
+Para realizar pruebas de resiliencia (comprobar cómo reacciona el sistema cuando falla un contenedor del backend o la base de datos), puedes usar el script automatizado. El script hace 20 peticiones consecutivas e imprime un resumen final.
+
+**Uso por defecto (hacia http://localhost):**
+```bash
+./scripts/probar-proxy.sh
+```
+
+**Uso con una URL específica (ej. apuntando a PC1):**
+```bash
+./scripts/probar-proxy.sh http://192.168.10.1
+```
+
+**Lectura de la salida:**
+El script imprime cada petición con su número, código HTTP y tiempo de respuesta en segundos.
+- Un código `200` indica éxito.
+- Un código `000` o diferente a `200` (ej. `503`) indica una petición fallida.
+- **Código de salida:** El script termina con `0` (éxito) si TODAS las peticiones fueron exitosas. Termina con `1` si hubo alguna falla, lo que es útil en entornos de integración continua (CI) para abortar flujos.
+
+**Flujo de prueba (ejemplo de caída de instancia):**
+Puedes simular una caída de instancia localmente deteniendo uno de los contenedores del backend y verificando cómo responde el sistema:
+1. `docker compose stop app2`
+2. `./scripts/probar-proxy.sh` (observa cómo el proxy maneja el tráfico hacia `app` si la configuración lo permite, o si falla)
+3. `docker compose start app2`
+
 ## Seguridad, Proxies de Confianza y CORS
 
 Para que el backend registre correctamente las IPs reales de los clientes (necesario para el rate limiting del login) y permita peticiones desde el frontend (PC2), debes definir las siguientes variables en tu archivo `.env`:
