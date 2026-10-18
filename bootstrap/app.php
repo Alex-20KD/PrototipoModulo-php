@@ -7,6 +7,7 @@ use App\Support\SecurityConfig;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -50,9 +51,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Distingue una base de datos caída de un error real de SQL: solo lo
         // primero debe devolver 503 al balanceador, un bug de código sigue en 500.
-        $isDatabaseConnectionFailure = function (PDOException $e): bool {
-            $sqlState = (string) ($e->errorInfo[0] ?? $e->getCode());
-            $driverCode = (int) ($e->errorInfo[1] ?? 0);
+        $isDatabaseConnectionFailure = function (PDOException|QueryException $e): bool {
+            $previous = $e instanceof QueryException ? $e->getPrevious() : null;
+            $sqlState = (string) ($e->errorInfo[0] ?? ($previous instanceof PDOException ? $previous->errorInfo[0] ?? null : null) ?? $e->getCode());
+            $driverCode = (int) ($e->errorInfo[1] ?? ($previous instanceof PDOException ? $previous->errorInfo[1] ?? 0 : 0));
             $message = $e->getMessage();
 
             return str_starts_with($sqlState, '08')
@@ -136,7 +138,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // 503 - base de datos caída (readiness) con el envoltorio uniforme
-        $exceptions->render(function (PDOException $e, Request $request) use ($isApiRequest, $isDatabaseConnectionFailure) {
+        $exceptions->render(function (PDOException|QueryException $e, Request $request) use ($isApiRequest, $isDatabaseConnectionFailure) {
             if (! $isDatabaseConnectionFailure($e) || ! $isApiRequest($request)) {
                 return null;
             }
