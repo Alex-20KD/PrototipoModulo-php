@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use PDOException;
 use Tests\TestCase;
 
 class HealthTest extends TestCase
@@ -104,5 +106,38 @@ class HealthTest extends TestCase
         Route::get('/sql-bug', fn () => DB::select('select 1 from tabla_inexistente'));
 
         $this->getJson('/sql-bug')->assertStatus(500);
+    }
+
+    public function test_api_returns_uniform_503_when_mysql_server_has_gone_away(): void
+    {
+        Route::get('/api/test-gone-away', function () {
+            $pdoEx = new PDOException('SQLSTATE[HY000] [2006] MySQL server has gone away', 2006);
+            $pdoEx->errorInfo = ['HY000', 2006, 'MySQL server has gone away'];
+
+            throw new QueryException('mysql', 'select 1', [], $pdoEx);
+        });
+
+        Route::get('/api/test-gone-away-pdo', function () {
+            $pdoEx = new PDOException('SQLSTATE[HY000] [2006] MySQL server has gone away', 2006);
+            $pdoEx->errorInfo = ['HY000', 2006, 'MySQL server has gone away'];
+
+            throw $pdoEx;
+        });
+
+        $this->getJson('/api/test-gone-away')
+            ->assertStatus(503)
+            ->assertExactJson([
+                'status' => false,
+                'message' => 'Servicio no disponible temporalmente',
+                'data' => null,
+            ]);
+
+        $this->getJson('/api/test-gone-away-pdo')
+            ->assertStatus(503)
+            ->assertExactJson([
+                'status' => false,
+                'message' => 'Servicio no disponible temporalmente',
+                'data' => null,
+            ]);
     }
 }
