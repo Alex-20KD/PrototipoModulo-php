@@ -128,7 +128,7 @@ Puedes simular una caída de instancia localmente deteniendo uno de los contened
 Para que el backend registre correctamente las IPs reales de los clientes (necesario para el rate limiting del login) y permita peticiones desde el frontend (PC2), debes definir las siguientes variables en tu archivo `.env`:
 
 - **`TRUSTED_PROXIES`**: Lista separada por comas con las IPs de los proxies permitidos (ej. `192.168.10.1` para PC1). Si estás probando localmente en una sola laptop con NGINX en Docker, usa la IP del gateway de Docker (ej. `172.18.0.1`). **Nota de seguridad:** Por diseño, no se admiten comodines (`*` o `**`) para evitar vulnerabilidades de suplantación de IP.
-- **`CORS_ALLOWED_ORIGINS`**: Orígenes permitidos para consumo de la API (ej. `http://192.168.10.2` para el frontend en PC2). Tampoco se admiten comodines.
+- **`CORS_ALLOWED_ORIGINS`**: Orígenes permitidos para consumo de la API (ej. `http://192.168.10.12` para el frontend en PC2). Tampoco se admiten comodines.
 
 
 
