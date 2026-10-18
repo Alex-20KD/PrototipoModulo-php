@@ -9,7 +9,7 @@ de contenedores en este despliegue.
 
 | Nodo | Equipo / SO | Rol | Tecnología | IP | Puerto(s) | Protocolo | Encargado |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **PC1** | Laptop · Linux (CachyOS) | Proxy inverso y balanceador de carga | NGINX / HAProxy | `192.168.10.1` | `80` | HTTP | Gonzalo |
+| **PC1** | Laptop · Linux (CachyOS) | Proxy inverso y balanceador de carga | NGINX | `192.168.10.1` | `80` | HTTP | Gonzalo |
 | **PC2** | Laptop · Windows | Frontend web | Apache (XAMPP) | `192.168.10.12` | `8080` | HTTP | Ginger |
 | **PC3** | VM · Ubuntu Server | Backend / API (2 instancias) | Laravel · PHP 8.4 | `192.168.10.13` | `8080`, `8081` (SSH `22`) | HTTP / SSH | Bryan |
 | **PC4** | VM · Ubuntu Server | Base de datos | MySQL 8.4 | `192.168.10.14` | `3306` | TCP | Carlos |
@@ -23,7 +23,7 @@ flowchart LR
   MOV["App móvil"]
   SW["Smartwatch"]
 
-  PC1["PC1 · Proxy / balanceador<br/>NGINX o HAProxy<br/>192.168.10.1:80"]
+  PC1["PC1 · Proxy / balanceador<br/>NGINX<br/>192.168.10.1:80"]
   PC3["PC3 · Backend Laravel x2<br/>192.168.10.13:8080 / :8081"]
   PC4["PC4 · MySQL<br/>192.168.10.14:3306"]
   PC5["PC5 · SFTP<br/>192.168.10.15:2222"]
@@ -51,13 +51,11 @@ flowchart LR
   través de un **switch**.
   Las direcciones `192.168.0.x` que aparecen en las capturas corresponden a una interfaz
   secundaria (modo puente) y no se utilizan en el proyecto.
-- **Proxy (PC1):** NGINX y HAProxy son intercambiables; ambos cubren proxy inverso y
-  balanceo entre las dos instancias de PC3. El repo incluye la configuración NGINX
-  (`proxy/nginx.conf.template`) para el entorno de desarrollo; en el nodo físico puede
-  usarse cualquiera de los dos con los mismos backends (`BACKEND1`/`BACKEND2`).
+- **Proxy (PC1):** NGINX (`proxy/nginx.conf.template`). HAProxy es la alternativa si el docente exige sondeo activo de salud (no implementado).
 - **Consistencia:** los puertos y direcciones coinciden con lo declarado en `.env.example`
   (`BACKEND1`/`BACKEND2` → `192.168.10.13:8080` y `:8081`, `TRUSTED_PROXIES` → `192.168.10.1`,
   `DB_PORT` → `3306`, `CORS_ALLOWED_ORIGINS` → `http://192.168.10.12`).
+- **Degradación:** si PC5 cae, `/health` responde 503 pero el resto de la API sigue operativa. PC1 genera o reutiliza `X-Request-ID` y lo propaga al backend para los logs.
 - **Integración externa:** el sistema de laboratorio clínico existente se integra por API y
   queda fuera de esta topología; su endpoint se marcará como **"Por definir"** una vez
   acordado con el laboratorio. El resto de parámetros de los 5 nodos están definidos.
