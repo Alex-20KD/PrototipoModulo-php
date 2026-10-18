@@ -6,10 +6,7 @@ use App\Http\Middleware\CheckRole;
 use App\Support\SecurityConfig;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Database\Connection;
-use Illuminate\Database\Connectors\MySqlConnector;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\MySqlConnection;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -21,44 +18,7 @@ use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-$timeout = filter_var(env('DB_TIMEOUT', 5), FILTER_VALIDATE_INT);
-if ($timeout !== false && $timeout > 0) {
-    ini_set('mysqlnd.net_read_timeout', (string) $timeout);
-}
-
 return Application::configure(basePath: dirname(__DIR__))
-    ->booting(function (): void {
-        $timeout = filter_var(env('DB_TIMEOUT', 5), FILTER_VALIDATE_INT);
-        if ($timeout !== false && $timeout > 0) {
-            ini_set('mysqlnd.net_read_timeout', (string) $timeout);
-        }
-
-        app()->bind('db.connector.mysql', function () {
-            return new class extends MySqlConnector
-            {
-                public function createConnection($dsn, array $config, array $options)
-                {
-                    return $this->createPdoConnection($dsn, $config['username'] ?? null, $config['password'] ?? null, $options);
-                }
-            };
-        });
-
-        Connection::resolverFor('mysql', function ($connection, $database, $prefix, $config) {
-            return new class($connection, $database, $prefix, $config) extends MySqlConnection
-            {
-                protected function tryAgainIfCausedByLostConnection(QueryException $e, $query, $bindings, Closure $callback)
-                {
-                    if ($this->pdo instanceof PDO && $this->causedByLostConnection($e->getPrevious())) {
-                        $this->reconnect();
-
-                        return $this->runQueryCallback($query, $bindings, $callback);
-                    }
-
-                    throw $e;
-                }
-            };
-        });
-    })
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
